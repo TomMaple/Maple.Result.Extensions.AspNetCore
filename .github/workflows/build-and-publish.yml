@@ -1,0 +1,89 @@
+﻿# This workflow will build and publish a NuGet library
+# For more information, see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Build and publish
+
+on:
+  push:
+    branches: [ "**" ]
+    paths: [ "src/**", "tests/**", ".github/workflows/**" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  ARTIFACTS_PATH: ${{ github.workspace }}/artifacts
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Get semantic version
+      uses: paulhatch/semantic-version@v5.4.0
+      id: semantic_version
+      with:
+        tag_prefix: "v"
+        major_pattern: "/!:|BREAKING CHANGE:/"
+        minor_pattern: "/feat(\\(.+\\))?:/"
+        bump_each_commit: true
+
+    - name: Generate final version
+      id: calculate_version
+      run: |
+        if [ "${GITHUB_REF_NAME}" = "main" ]; then
+          echo "package_version=${SEMVER}" >> $GITHUB_OUTPUT
+          echo "informational_version=${SEMVER}+${COMMIT}" >> $GITHUB_OUTPUT
+        else
+          CLEAN_BRANCH=$(echo "${GITHUB_REF_NAME}" | sed 's|^[^/]*\/||' | tr '[:upper:]' '[:lower:]' | tr -c '0-9a-z.-' '-')
+          echo "package_version=${SEMVER}-${CLEAN_BRANCH}" >> $GITHUB_OUTPUT
+          echo "informational_version=${SEMVER}-${CLEAN_BRANCH}+${COMMIT}" >> $GITHUB_OUTPUT
+        fi
+      env:
+        SEMVER: ${{ steps.semantic_version.outputs.version }}
+        COMMIT: ${{ steps.semantic_version.outputs.current_commit }}
+
+    - name: Display calculated version
+      run: |
+        echo "Package version: ${{ steps.calculate_version.outputs.package_version }}"
+        echo "Informational version: ${{ steps.calculate_version.outputs.informational_version }}"
+      shell: bash
+
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore -p:Version=${{ steps.calculate_version.outputs.package_version }} -p:InformationalVersion=${{ steps.calculate_version.outputs.informational_version }} --configuration Release --verbosity normal
+
+    - name: Test
+      run: dotnet test --no-build --configuration Release --verbosity normal
+
+    - name: Generate NuGet package
+      run: dotnet pack src/Maple.Result.Extensions.AspNetCore/Maple.Result.Extensions.AspNetCore.csproj --no-build -o ${{ env.ARTIFACTS_PATH }} -p:Version=${{ steps.calculate_version.outputs.package_version }} -p:InformationalVersion=${{ steps.calculate_version.outputs.informational_version }} --configuration Release
+
+    - name: NuGet login
+      if: github.ref == 'refs/heads/main'
+      uses: NuGet/login@v1
+      id: nuget_login
+      with:
+        user: ${{ secrets.NUGET_USER }}
+
+    - name: NuGet push
+      if: github.ref == 'refs/heads/main'
+      run: dotnet nuget push ${{ env.ARTIFACTS_PATH }}/*.nupkg --api-key ${{steps.nuget_login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
