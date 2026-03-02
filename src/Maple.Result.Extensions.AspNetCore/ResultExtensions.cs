@@ -1,4 +1,6 @@
 ﻿using System;
+using Maple.Result.Extensions.AspNetCore.Mappers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Maple.Result.Extensions.AspNetCore;
@@ -40,8 +42,16 @@ public static class ResultExtensions
     private static IActionResult ToActionResult(this Error error, ControllerBase controller)
     {
         var statusCode = ErrorCategoryMapper.GetStatusCode(error.Category);
-        var errorObject = ErrorDetails.FromError(error, statusCode);
+        var errorObject = ErrorMapper.Map(error, statusCode);
 
-        return controller.StatusCode(errorObject.Status!.Value, errorObject);
+        return statusCode switch
+        {
+            StatusCodes.Status400BadRequest => controller.BadRequest(errorObject),
+            StatusCodes.Status401Unauthorized => controller.Unauthorized(errorObject),
+            StatusCodes.Status404NotFound => controller.NotFound(errorObject),
+            StatusCodes.Status409Conflict => controller.Conflict(errorObject),
+            StatusCodes.Status422UnprocessableEntity => controller.UnprocessableEntity(errorObject),
+            _ => controller.StatusCode(errorObject.Status!.Value, errorObject)
+        };
     }
 }
