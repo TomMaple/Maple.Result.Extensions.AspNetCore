@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Maple.Result" Version="1.38.0" />
+    <PackageReference Include="Maple.Result" Version="1.38.7" />
   </ItemGroup>
 
   <ItemGroup>
