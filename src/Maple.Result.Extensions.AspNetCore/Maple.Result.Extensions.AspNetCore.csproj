@@ -16,6 +16,9 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
     <PackageProjectUrl>https://github.com/TomMaple/Maple.Result.Extensions.AspNetCore</PackageProjectUrl>
     <RepositoryUrl>https://github.com/TomMaple/Maple.Result.Extensions.AspNetCore</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -26,9 +29,13 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Maple.Result" Version="1.38.7" />
+    <PackageReference Include="Maple.Result" Version="1.38.16" />
   </ItemGroup>
 
   <ItemGroup>
