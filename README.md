@@ -4,13 +4,22 @@ Maps the [Maple.Result](https://github.com/TomMaple/Result) to the HTTP response
 
 # Project status: EARLY STAGE
 
-Check also my library: [Maple.Result](https://github.com/TomMaple/Result)
+Check also my libraries:
+* [Maple.Result](https://github.com/TomMaple/Result),
+* <i>Maple.Result.Extensions.Functions.Worker</i> (coming soon),
+* [Maple.Result.Extensions.HttpClient](https://github.com/TomMaple/Maple.Result.Extensions.HttpClient).
 
 # Give it a star ⭐
 Do you like it? Show your support by giving this project a star!
 
-# Why❓
-I decided to create a new implementation to address a few missing functionalities in other libraries (e.g., i18n, support for more precise error descriptions) and to better follow industry standards ([RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457)).
+# Status
+➡️ Basic mapping without configuration.<br/>
+🔲 Integration tests.<br/>
+🔲 Configuration passed as a parameter to the extension method.<br/>
+🔲 Support for global configuration.<br/>
+🔲 Support for multiple successful codes.<br/>
+🔲 Support for Created (201) with Location header.<br/>
+🔲 Documentation.
 
 # Example Error Response
 Example
@@ -25,14 +34,14 @@ Example
         {
             "pointer": "#/age",
             "detail": "must be a positive integer",
-            "detailTemplate": {
+            "detailTemplated": {
                 "messageId":"user.details.age.mustBePositive"
             }
         },
         {
             "pointer": "#/profile/colour",
             "detail": "must be ‘green’, ‘red’ or ‘blue’",
-            "detailTemplate": {
+            "detailTemplated": {
                 "messageId": "user.profile.colour",
                 "params": {
                     "validValueIds": [
@@ -44,7 +53,7 @@ Example
             }
         }
     ],
-    "detailTemplate": {
+    "detailTemplated": {
         "messageId": "user.account.balance.tooLow",
         "params": {
             "errorCode": "UAB17",
