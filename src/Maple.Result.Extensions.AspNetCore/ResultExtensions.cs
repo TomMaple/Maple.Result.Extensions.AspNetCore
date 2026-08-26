@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Maple.Result.Extensions.AspNetCore.Configuration;
 using Maple.Result.Extensions.AspNetCore.Mappers;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using System;
 
 namespace Maple.Result.Extensions.AspNetCore;
 
@@ -41,17 +43,23 @@ public static class ResultExtensions
 
     private static IActionResult ToActionResult(this Error error, ControllerBase controller)
     {
-        var statusCode = ErrorCategoryMapper.GetStatusCode(error.Category);
-        var errorObject = ErrorMapper.Map(error, statusCode);
-
-        return statusCode switch
+        // Check for custom mappings first
+        var options = controller.HttpContext.RequestServices.GetService<IOptions<ResultMappingOptions>>();
+        var mappings = options?.Value.Mappings;
+        if (mappings is { Count: > 0 })
         {
-            StatusCodes.Status400BadRequest => controller.BadRequest(errorObject),
-            StatusCodes.Status401Unauthorized => controller.Unauthorized(errorObject),
-            StatusCodes.Status404NotFound => controller.NotFound(errorObject),
-            StatusCodes.Status409Conflict => controller.Conflict(errorObject),
-            StatusCodes.Status422UnprocessableEntity => controller.UnprocessableEntity(errorObject),
-            _ => controller.StatusCode(errorObject.Status!.Value, errorObject)
-        };
+            foreach (var mapping in mappings)
+            {
+                var mappingResult = mapping?.Invoke(error, controller);
+                if (mappingResult is not null)
+                    return mappingResult;
+            }
+        }
+
+        // Fallback to default mapping
+        var statusCode = ErrorCategoryMapper.GetStatusCode(error.Category);
+        var extensions = ErrorMapper.MapExtensions(error);
+
+        return controller.Problem(error.Detail, error.InstanceUri, statusCode, error.Title, error.TypeUri, extensions);
     }
 }
