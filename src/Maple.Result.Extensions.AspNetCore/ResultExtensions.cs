@@ -1,4 +1,4 @@
-﻿using Maple.Result.Extensions.AspNetCore.Configuration;
+using Maple.Result.Extensions.AspNetCore.Configuration;
 using Maple.Result.Extensions.AspNetCore.Mappers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,6 +76,8 @@ public static class ResultExtensions
             error => error.ToActionResult(controller));
     }
 
+    #region helper methods
+
     private static IActionResult ToActionResult(this Error error, ControllerBase controller)
     {
         // Check for custom mappings first
@@ -97,4 +99,6 @@ public static class ResultExtensions
 
         return controller.Problem(error.Detail, error.InstanceUri, statusCode, error.Title, error.TypeUri, extensions);
     }
+
+    #endregion
 }
