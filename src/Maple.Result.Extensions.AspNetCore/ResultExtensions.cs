@@ -7,18 +7,43 @@ using System;
 
 namespace Maple.Result.Extensions.AspNetCore;
 
+/// <summary>
+///     The collection of extension methods for converting <see cref="Result" /> and <see cref="Result{T}" /> to <see cref="IActionResult" />.
+/// </summary>
 public static class ResultExtensions
 {
+    /// <summary>
+    ///     Creates an <see cref="IActionResult" /> from a <see cref="Result" /> instance.
+    /// </summary>
+    /// <param name="controller">The controller instance.</param>
+    /// <param name="result">The <see cref="Result" /> to convert.</param>
+    /// <returns>An <see cref="IActionResult" /> representing the <see cref="Result" />.</returns>
     public static IActionResult ToActionResult(this ControllerBase controller, Result result)
     {
         return result.ToActionResult(controller);
     }
 
+    /// <summary>
+    ///     Creates an <see cref="IActionResult" /> from a <see cref="Result{T}" /> instance.
+    /// </summary>
+    /// <typeparam name="T">
+    ///     The type of the <see cref="Result{T}" /> value used to determine whether to execute the passed
+    ///     function. If successful, this is also the type of the parameter passed to that function.
+    /// </typeparam>
+    /// <param name="controller">The controller instance.</param>
+    /// <param name="result">The <see cref="Result{T}" /> to convert.</param>
+    /// <returns>An <see cref="IActionResult" /> representing the <see cref="Result{T}" />.</returns>
     public static IActionResult ToActionResult<T>(this ControllerBase controller, Result<T> result)
     {
         return result.ToActionResult(controller);
     }
 
+    /// <summary>
+    ///     Creates an <see cref="IActionResult" /> from a <see cref="Result" /> instance.
+    /// </summary>
+    /// <param name="result">The <see cref="Result" /> to convert.</param>
+    /// <param name="controller">The controller instance.</param>
+    /// <returns>An <see cref="IActionResult" /> representing the <see cref="Result" />.</returns>
     public static IActionResult ToActionResult(this Result result, ControllerBase controller)
     {
         ArgumentNullException.ThrowIfNull(result);
@@ -29,6 +54,16 @@ public static class ResultExtensions
             error => error.ToActionResult(controller));
     }
 
+    /// <summary>
+    ///     Creates an <see cref="IActionResult" /> from a <see cref="Result{T}" /> instance.
+    /// </summary>
+    /// <typeparam name="T">
+    ///     The type of the <see cref="Result{T}" /> value used to determine whether to execute the passed
+    ///     function. If successful, this is also the type of the parameter passed to that function.
+    /// </typeparam>
+    /// <param name="result">The <see cref="Result{T}" /> to convert.</param>
+    /// <param name="controller">The controller instance.</param>
+    /// <returns>An <see cref="IActionResult" /> representing the <see cref="Result{T}" />.</returns>
     public static IActionResult ToActionResult<T>(this Result<T> result, ControllerBase controller)
     {
         ArgumentNullException.ThrowIfNull(result);
