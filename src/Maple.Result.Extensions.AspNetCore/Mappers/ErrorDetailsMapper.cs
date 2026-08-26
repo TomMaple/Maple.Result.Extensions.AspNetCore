@@ -1,13 +1,13 @@
-﻿namespace Maple.Result.Extensions.AspNetCore.Mappers;
+namespace Maple.Result.Extensions.AspNetCore.Mappers;
 
 internal static class ErrorDetailsMapper
 {
-    internal static ErrorDetail Map(Maple.Result.ErrorDetail source)
+    internal static ViewModels.ErrorDetail Map(ErrorDetail source)
     {
         var detailTemplated = source.DetailTemplated is null
             ? null
             : TemplatedMessageMapper.Map(source.DetailTemplated);
 
-        return new ErrorDetail(source.PropertyPointer, source.Detail, detailTemplated);
+        return new ViewModels.ErrorDetail(source.PropertyPointer, source.Detail, detailTemplated);
     }
 }

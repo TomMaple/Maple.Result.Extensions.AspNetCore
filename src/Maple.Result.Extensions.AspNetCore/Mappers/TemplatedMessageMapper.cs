@@ -1,11 +1,11 @@
-﻿namespace Maple.Result.Extensions.AspNetCore.Mappers;
+namespace Maple.Result.Extensions.AspNetCore.Mappers;
 
 internal static class TemplatedMessageMapper
 {
-    internal static TemplatedMessage? Map(Maple.Result.TemplatedMessage? source)
+    internal static ViewModels.TemplatedMessage? Map(TemplatedMessage? source)
     {
         return source is null 
             ? null 
-            : new TemplatedMessage(source.TemplateId, source.Params);
+            : new ViewModels.TemplatedMessage(source.TemplateId, source.Params);
     }
 }
