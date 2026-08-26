@@ -1,14 +1,14 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Maple.Result.Extensions.AspNetCore.ViewModels;
 
 public record ErrorDetail
 {
-    public ErrorDetail(string? PropertyPointer, string Detail, TemplatedMessage? DetailTemplated = null)
+    public ErrorDetail(string? propertyPointer, string detail, TemplatedMessage? detailTemplated = null)
     {
-        this.PropertyPointer = PropertyPointer;
-        this.Detail = Detail;
-        this.DetailTemplated = DetailTemplated;
+        PropertyPointer = propertyPointer;
+        Detail = detail;
+        DetailTemplated = detailTemplated;
     }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
