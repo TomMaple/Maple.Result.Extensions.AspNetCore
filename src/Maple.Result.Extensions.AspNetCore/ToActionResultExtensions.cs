@@ -10,7 +10,7 @@ namespace Maple.Result.Extensions.AspNetCore;
 /// <summary>
 ///     The collection of extension methods for converting <see cref="Result" /> and <see cref="Result{T}" /> to <see cref="ActionResult" />.
 /// </summary>
-public static class ResultActionResultExtensions
+public static class ToActionResultExtensions
 {
     #region (ControllerBase, Result)
 
@@ -369,4 +369,19 @@ public static class ResultActionResultExtensions
     private static ActionResult? TryMapUsingResultMappingOptions(Error error, ControllerBase controller)
     {
         var options = controller.HttpContext.RequestServices.GetService<IOptions<ResultMappingOptions>>();
-        var mapp
+        var mappings = options?.Value.ErrorMappings;
+        if (mappings is not { Count: > 0 })
+            return null;
+
+        foreach (var mapping in mappings)
+        {
+            var mappingResult = mapping?.Invoke(error, controller);
+            if (mappingResult is not null)
+                return mappingResult;
+        }
+
+        return null;
+    }
+
+    #endregion
+}
