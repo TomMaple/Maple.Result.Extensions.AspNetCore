@@ -13,12 +13,12 @@ Check also my libraries:
 Do you like it? Show your support by giving this project a star!
 
 # Status
-➡️ Basic mapping without configuration.  
-🔲 Integration tests.  
-🔲 Configuration passed as a parameter to the extension method.  
-🔲 Support for global configuration.  
-🔲 Support for multiple successful codes.  
-🔲 Support for Created (201) with Location header.  
+✅ Basic mapping without configuration.  
+✅ Integration tests.  
+✅ Configuration passed as a parameter to the extension method.  
+✅ Support for global configuration.  
+✅ Support for multiple successful codes.  
+✅ Support for Created (201) with Location header.  
 🔲 Documentation.
 
 # Example Error Response
