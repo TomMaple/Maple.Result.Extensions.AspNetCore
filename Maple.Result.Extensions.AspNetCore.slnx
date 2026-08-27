@@ -13,4 +13,7 @@
   <Folder Name="/src/">
     <Project Path="src/Maple.Result.Extensions.AspNetCore/Maple.Result.Extensions.AspNetCore.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Maple.Result.Extensions.AspNetCore.Tests.Functional/Maple.Result.Extensions.AspNetCore.Tests.Functional.csproj" Id="b342445a-4062-45d2-9dae-1b6bd5e6d6d0" />
+  </Folder>
 </Solution>

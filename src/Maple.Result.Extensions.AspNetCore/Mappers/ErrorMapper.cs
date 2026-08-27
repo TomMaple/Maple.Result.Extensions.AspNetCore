@@ -1,32 +1,31 @@
-﻿using System.Linq;
-using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Maple.Result.Extensions.AspNetCore.Mappers;
 
 internal static class ErrorMapper
 {
-    internal static ProblemDetails Map(Error error, int statusCode)
+    internal static Dictionary<string, object?>? MapExtensions(Error error)
     {
-        var problemDetails = new ProblemDetails
-        {
-            Type = error.TypeUri,
-            Title = error.Title,
-            Status = statusCode,
-            Detail = error.Detail,
-            Instance = error.InstanceUri
-        };
+        Dictionary<string, object?>? extensions = null;
 
         var errorDetails = error.ErrorDetails
             .Select(ErrorDetailsMapper.Map)
             .ToArray();
 
-        if (errorDetails is {Length: >0})
-            problemDetails.Extensions["errors"] = errorDetails;
+        if (errorDetails is { Length: > 0 })
+        {
+            extensions ??= new Dictionary<string, object?>();
+            extensions["errors"] = errorDetails;
+        }
 
         var errorDetailTemplated = TemplatedMessageMapper.Map(error.DetailTemplated);
         if (errorDetailTemplated is not null)
-            problemDetails.Extensions["detailTemplated"] = errorDetailTemplated;
+        {
+            extensions ??= new Dictionary<string, object?>();
+            extensions["detailTemplated"] = errorDetailTemplated;
+        }
 
-        return problemDetails;
+        return extensions;
     }
 }
