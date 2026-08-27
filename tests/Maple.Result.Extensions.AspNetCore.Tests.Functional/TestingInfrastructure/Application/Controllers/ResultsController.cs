@@ -336,6 +336,74 @@ public sealed class ResultsController : ControllerBase
 
     #endregion
 
+    #region success status code
+
+    [HttpGet("status-code/success")]
+    public IActionResult GetSuccessWithStatusCode()
+    {
+        var result = Result.Success();
+
+        return result.ToActionResult(this, StatusCodes.Status202Accepted);
+    }
+
+    [HttpGet("status-code/controller-result")]
+    public IActionResult GetSuccessWithStatusCodeFromController()
+    {
+        var result = Result.Success();
+
+        return this.ToActionResult(result, StatusCodes.Status207MultiStatus);
+    }
+
+    [HttpGet("status-code/success/value")]
+    public IActionResult GetSuccessWithValueAndStatusCode()
+    {
+        var result = Result<TestValue>.FromValue(new TestValue(13, "Test value"));
+
+        return result.ToActionResult(this, StatusCodes.Status201Created);
+    }
+
+    [HttpGet("status-code/generic-controller-result")]
+    public IActionResult GetSuccessWithValueAndStatusCodeFromController()
+    {
+        var result = Result<TestValue>.FromValue(new TestValue(13, "Test value"));
+
+        return this.ToActionResult(result, StatusCodes.Status203NonAuthoritative);
+    }
+
+    [HttpGet("status-code/success/null-value")]
+    public IActionResult GetSuccessWithNullValueAndStatusCode()
+    {
+        var result = Result<TestValue?>.FromValue(null);
+
+        return result.ToActionResult(this, StatusCodes.Status226IMUsed);
+    }
+
+    [HttpGet("status-code/success/null-value-status-code")]
+    public IActionResult GetSuccessWithNullValueAndNullValueStatusCode()
+    {
+        var result = Result<TestValue?>.FromValue(null);
+
+        return result.ToActionResult(this, StatusCodes.Status203NonAuthoritative, StatusCodes.Status205ResetContent);
+    }
+
+    [HttpGet("status-code/error")]
+    public IActionResult GetFailureWithStatusCode()
+    {
+        var result = Result.FromError(CreateFailureError());
+
+        return result.ToActionResult(this, StatusCodes.Status202Accepted);
+    }
+
+    [HttpGet("status-code/error/custom-mapping")]
+    public IActionResult GetFailureWithStatusCodeAndMapping()
+    {
+        var result = Result.FromError(CreateFailureError());
+
+        return result.ToActionResult(this, StatusCodes.Status207MultiStatus, MapFailureToPaymentRequired);
+    }
+
+    #endregion
+
     #region helper methods
 
     private static Error CreateFailureError()

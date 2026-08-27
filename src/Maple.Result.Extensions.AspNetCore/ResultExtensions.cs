@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
 
 namespace Maple.Result.Extensions.AspNetCore;
 
@@ -32,11 +31,31 @@ public static class ResultExtensions
     }
 
     /// <summary>
+    ///     Creates an <see cref="IActionResult" /> from a <see cref="Result" /> instance, using the given
+    ///     HTTP status code when it is successful.
+    /// </summary>
+    /// <param name="controller">The controller instance.</param>
+    /// <param name="result">The <see cref="Result" /> to convert.</param>
+    /// <param name="successStatusCode">The HTTP status code returned when the <see cref="Result" /> is successful.</param>
+    /// <param name="customMapping">
+    ///     An optional custom mapping function used to convert an <see cref="Error" /> to
+    ///     an <see cref="IActionResult" />. It is evaluated before the mappings registered with
+    ///     the <see cref="ServiceCollectionExtensions.ConfigureResultMapping" /> method, and it is used
+    ///     when it returns a non-<see langword="null" /> value.
+    /// </param>
+    /// <returns>An <see cref="IActionResult" /> representing the <see cref="Result" />.</returns>
+    public static IActionResult ToActionResult(this ControllerBase controller, Result result,
+        int successStatusCode, Func<Error, ControllerBase, IActionResult?>? customMapping = null)
+    {
+        return result.ToActionResult(controller, successStatusCode, customMapping);
+    }
+
+    /// <summary>
     ///     Creates an <see cref="IActionResult" /> from a <see cref="Result{T}" /> instance.
     /// </summary>
     /// <typeparam name="T">
-    ///     The type of the <see cref="Result{T}" /> value used to determine whether to execute the passed
-    ///     function. If successful, this is also the type of the parameter passed to that function.
+    ///     The type of the <see cref="Result{T}" /> value used to determine whether to execute
+    ///     the passed function. If successful, this is also the type of the parameter passed to that function.
     /// </typeparam>
     /// <param name="controller">The controller instance.</param>
     /// <param name="result">The <see cref="Result{T}" /> to convert.</param>
@@ -51,6 +70,35 @@ public static class ResultExtensions
         Func<Error, ControllerBase, IActionResult?>? customMapping = null)
     {
         return result.ToActionResult(controller, customMapping);
+    }
+
+    /// <summary>
+    ///     Creates an <see cref="IActionResult" /> from a <see cref="Result{T}" /> instance, using the given
+    ///     HTTP status code when it is successful.
+    /// </summary>
+    /// <typeparam name="T">
+    ///     The type of the <see cref="Result{T}" /> value used to determine whether to execute
+    ///     the passed function. If successful, this is also the type of the parameter passed to that function.
+    /// </typeparam>
+    /// <param name="controller">The controller instance.</param>
+    /// <param name="result">The <see cref="Result{T}" /> to convert.</param>
+    /// <param name="successStatusCode">The HTTP status code returned when the <see cref="Result{T}" /> is successful.</param>
+    /// <param name="successNoResponseStatusCode">
+    ///     An optional HTTP status code returned when the <see cref="Result{T}" /> is successful, but its value
+    ///     is <see langword="null" />. When it is not provided, the <paramref name="successStatusCode" /> is used.
+    /// </param>
+    /// <param name="customMapping">
+    ///     An optional custom mapping function used to convert an <see cref="Error" /> to
+    ///     an <see cref="IActionResult" />. It is evaluated before the mappings registered with
+    ///     the <see cref="ServiceCollectionExtensions.ConfigureResultMapping" /> method, and it is used
+    ///     when it returns a non-<see langword="null" /> value.
+    /// </param>
+    /// <returns>An <see cref="IActionResult" /> representing the <see cref="Result{T}" />.</returns>
+    public static IActionResult ToActionResult<T>(this ControllerBase controller, Result<T> result,
+        int successStatusCode, int? successNoResponseStatusCode = null,
+        Func<Error, ControllerBase, IActionResult?>? customMapping = null)
+    {
+        return result.ToActionResult(controller, successStatusCode, successNoResponseStatusCode, customMapping);
     }
 
     /// <summary>
@@ -77,11 +125,36 @@ public static class ResultExtensions
     }
 
     /// <summary>
+    ///     Creates an <see cref="IActionResult" /> from a <see cref="Result" /> instance, using the given
+    ///     HTTP status code when it is successful.
+    /// </summary>
+    /// <param name="result">The <see cref="Result" /> to convert.</param>
+    /// <param name="controller">The controller instance.</param>
+    /// <param name="successStatusCode">The HTTP status code returned when the <see cref="Result" /> is successful.</param>
+    /// <param name="customMapping">
+    ///     An optional custom mapping function used to convert an <see cref="Error" /> to
+    ///     an <see cref="IActionResult" />. It is evaluated before the mappings registered with
+    ///     the <see cref="ServiceCollectionExtensions.ConfigureResultMapping" /> method, and it is used
+    ///     when it returns a non-<see langword="null" /> value.
+    /// </param>
+    /// <returns>An <see cref="IActionResult" /> representing the <see cref="Result" />.</returns>
+    public static IActionResult ToActionResult(this Result result, ControllerBase controller,
+        int successStatusCode, Func<Error, ControllerBase, IActionResult?>? customMapping = null)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(controller);
+
+        return result.Match<IActionResult>(
+            () => controller.StatusCode(successStatusCode),
+            error => error.ToActionResult(controller, customMapping));
+    }
+
+    /// <summary>
     ///     Creates an <see cref="IActionResult" /> from a <see cref="Result{T}" /> instance.
     /// </summary>
     /// <typeparam name="T">
-    ///     The type of the <see cref="Result{T}" /> value used to determine whether to execute the passed
-    ///     function. If successful, this is also the type of the parameter passed to that function.
+    ///     The type of the <see cref="Result{T}" /> value used to determine whether to execute
+    ///     the passed function. If successful, this is also the type of the parameter passed to that function.
     /// </typeparam>
     /// <param name="result">The <see cref="Result{T}" /> to convert.</param>
     /// <param name="controller">The controller instance.</param>
@@ -102,6 +175,42 @@ public static class ResultExtensions
             value => value is null
                 ? controller.NoContent()
                 : controller.Ok(result.Value),
+            error => error.ToActionResult(controller, customMapping));
+    }
+
+    /// <summary>
+    ///     Creates an <see cref="IActionResult" /> from a <see cref="Result{T}" /> instance, using the given
+    ///     HTTP status code when it is successful.
+    /// </summary>
+    /// <typeparam name="T">
+    ///     The type of the <see cref="Result{T}" /> value used to determine whether to execute
+    ///     the passed function. If successful, this is also the type of the parameter passed to that function.
+    /// </typeparam>
+    /// <param name="result">The <see cref="Result{T}" /> to convert.</param>
+    /// <param name="controller">The controller instance.</param>
+    /// <param name="successStatusCode">The HTTP status code returned when the <see cref="Result{T}" /> is successful.</param>
+    /// <param name="successNoResponseStatusCode">
+    ///     An optional HTTP status code returned when the <see cref="Result{T}" /> is successful, but its value
+    ///     is <see langword="null" />. When it is not provided, the <paramref name="successStatusCode" /> is used.
+    /// </param>
+    /// <param name="customMapping">
+    ///     An optional custom mapping function used to convert an <see cref="Error" /> to
+    ///     an <see cref="IActionResult" />. It is evaluated before the mappings registered with
+    ///     the <see cref="ServiceCollectionExtensions.ConfigureResultMapping" /> method, and it is used
+    ///     when it returns a non-<see langword="null" /> value.
+    /// </param>
+    /// <returns>An <see cref="IActionResult" /> representing the <see cref="Result{T}" />.</returns>
+    public static IActionResult ToActionResult<T>(this Result<T> result, ControllerBase controller,
+        int successStatusCode, int? successNoResponseStatusCode = null,
+        Func<Error, ControllerBase, IActionResult?>? customMapping = null)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(controller);
+
+        return result.Match(
+            value => value is null
+                ? controller.StatusCode(successNoResponseStatusCode ?? successStatusCode)
+                : controller.StatusCode(successStatusCode, result.Value),
             error => error.ToActionResult(controller, customMapping));
     }
 

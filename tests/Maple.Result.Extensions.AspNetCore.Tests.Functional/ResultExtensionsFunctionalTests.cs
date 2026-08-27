@@ -703,6 +703,116 @@ public class ResultExtensionsFunctionalTests
 
     #endregion
 
+    #region success status code
+
+    [Fact]
+    public async Task ToActionResult_SuccessfulResultWithSuccessStatusCode_ReturnsGivenStatusCode()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/status-code/success");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.Accepted);
+        json.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ToActionResult_SuccessfulResultWithSuccessStatusCodeFromController_ReturnsGivenStatusCode()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/status-code/controller-result");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.MultiStatus);
+        json.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ToActionResult_SuccessfulResultWithValueAndSuccessStatusCode_ReturnsGivenStatusCodeWithValue()
+    {
+        // Arrange
+        const string ExpectedJson =
+            """
+            {
+              "id": 13,
+              "name": "Test value"
+            }
+            """;
+
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/status-code/success/value");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.Created);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedJson));
+    }
+
+    [Fact]
+    public async Task ToActionResult_SuccessfulResultWithValueAndSuccessStatusCodeFromController_ReturnsGivenStatusCodeWithValue()
+    {
+        // Arrange
+        const string ExpectedJson =
+            """
+            {
+              "id": 13,
+              "name": "Test value"
+            }
+            """;
+
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/status-code/generic-controller-result");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.NonAuthoritativeInformation);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedJson));
+    }
+
+    [Fact]
+    public async Task ToActionResult_SuccessfulResultWithNullValueAndNoNullValueStatusCode_ReturnsSuccessStatusCode()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/status-code/success/null-value");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.IMUsed);
+        json.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ToActionResult_SuccessfulResultWithNullValueAndNullValueStatusCode_ReturnsNullValueStatusCode()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/status-code/success/null-value-status-code");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.ResetContent);
+        json.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ToActionResult_ErrorWithSuccessStatusCode_ReturnsDefaultProblemDetails()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/status-code/error");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedFailureJson));
+    }
+
+    [Fact]
+    public async Task ToActionResult_ErrorWithSuccessStatusCodeAndMappingPassedToTheMethod_ReturnsCustomMappedResponse()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/status-code/error/custom-mapping");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.PaymentRequired);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedFailureMappingJson));
+    }
+
+    #endregion
+
     #region helper methods
 
     private static async Task<(HttpStatusCode StatusCode, string Json)> GetAsync(HttpClient client, string route)
