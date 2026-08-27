@@ -1,4 +1,5 @@
 using Maple.Result.Extensions.AspNetCore.Tests.Functional.TestingInfrastructure.Application.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Maple.Result.Extensions.AspNetCore.Tests.Functional.TestingInfrastructure.Application.Controllers;
@@ -279,6 +280,62 @@ public sealed class ResultsController : ControllerBase
 
     #endregion
 
+    #region custom mappings passed to the method
+
+    [HttpGet("per-call/matching")]
+    public IActionResult GetFailureWithMatchingMapping()
+    {
+        var result = Result.FromError(CreateFailureError());
+
+        return result.ToActionResult(this, MapFailureToPaymentRequired);
+    }
+
+    [HttpGet("per-call/controller-result")]
+    public IActionResult GetFailureWithMatchingMappingFromController()
+    {
+        var result = Result.FromError(CreateFailureError());
+
+        return this.ToActionResult(result, MapFailureToPaymentRequired);
+    }
+
+    [HttpGet("per-call/generic-result-controller")]
+    public IActionResult GetFailureWithMatchingMappingFromGenericResult()
+    {
+        var result = Result<TestValue>.FromError(CreateFailureError());
+
+        return result.ToActionResult(this, MapFailureToPaymentRequired);
+    }
+
+    [HttpGet("per-call/generic-controller-result")]
+    public IActionResult GetFailureWithMatchingMappingFromControllerWithGenericResult()
+    {
+        var result = Result<TestValue>.FromError(CreateFailureError());
+
+        return this.ToActionResult(result, MapFailureToPaymentRequired);
+    }
+
+    [HttpGet("per-call/not-matching")]
+    public IActionResult GetFailureWithNotMatchingMapping()
+    {
+        var result = Result.FromError(CreateFailureError());
+
+        return result.ToActionResult(this, MapConflictToPaymentRequired);
+    }
+
+    [HttpGet("per-call/precedence")]
+    public IActionResult GetConflictWithMatchingMapping()
+    {
+        var result = Result.FromError(Error.Conflict(
+            ErrorUri.Tag("tag:test.com,2026:conflict"),
+            "Conflict title",
+            "Conflict detail.",
+            ErrorUri.Locator("https://test.com/instances/conflict")));
+
+        return result.ToActionResult(this, MapConflictToPaymentRequired);
+    }
+
+    #endregion
+
     #region helper methods
 
     private static Error CreateFailureError()
@@ -288,6 +345,20 @@ public sealed class ResultsController : ControllerBase
             "Failure title",
             "Failure detail.",
             ErrorUri.Locator("https://test.com/instances/failure"));
+    }
+
+    private static IActionResult? MapFailureToPaymentRequired(Error error, ControllerBase controller)
+    {
+        return error.Category == ErrorCategory.Failure
+            ? controller.StatusCode(StatusCodes.Status402PaymentRequired, new TestValue(11, error.Title))
+            : null;
+    }
+
+    private static IActionResult? MapConflictToPaymentRequired(Error error, ControllerBase controller)
+    {
+        return error.Category == ErrorCategory.Conflict
+            ? controller.StatusCode(StatusCodes.Status402PaymentRequired, new TestValue(22, error.Title))
+            : null;
     }
 
     #endregion

@@ -22,6 +22,14 @@ public class ResultExtensionsFunctionalTests
         }
         """;
 
+    private const string ExpectedFailureMappingJson =
+        """
+        {
+          "id": 11,
+          "name": "Failure title"
+        }
+        """;
+
     #endregion
 
     #region read-only fields
@@ -611,6 +619,85 @@ public class ResultExtensionsFunctionalTests
 
         // Assert
         statusCode.ShouldBe(HttpStatusCode.NotFound);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedJson));
+    }
+
+    #endregion
+
+    #region custom mappings passed to the method
+
+    [Fact]
+    public async Task ToActionResult_ErrorMatchingMappingPassedToTheMethod_ReturnsCustomMappedResponse()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/per-call/matching");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.PaymentRequired);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedFailureMappingJson));
+    }
+
+    [Fact]
+    public async Task ToActionResult_ErrorMatchingMappingPassedToTheMethodFromController_ReturnsCustomMappedResponse()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/per-call/controller-result");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.PaymentRequired);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedFailureMappingJson));
+    }
+
+    [Fact]
+    public async Task ToActionResult_ErrorMatchingMappingPassedToTheMethodFromGenericResult_ReturnsCustomMappedResponse()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/per-call/generic-result-controller");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.PaymentRequired);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedFailureMappingJson));
+    }
+
+    [Fact]
+    public async Task ToActionResult_ErrorMatchingMappingPassedToTheMethodFromControllerWithGenericResult_ReturnsCustomMappedResponse()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/per-call/generic-controller-result");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.PaymentRequired);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedFailureMappingJson));
+    }
+
+    [Fact]
+    public async Task ToActionResult_ErrorNotMatchingMappingPassedToTheMethod_ReturnsDefaultProblemDetails()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/per-call/not-matching");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedFailureJson));
+    }
+
+    [Fact]
+    public async Task ToActionResult_ErrorMatchingMappingPassedToTheMethodAndRegisteredMapping_ReturnsResponseOfTheMappingPassedToTheMethod()
+    {
+        // Arrange
+        const string ExpectedJson =
+            """
+            {
+              "id": 22,
+              "name": "Conflict title"
+            }
+            """;
+
+        // Act
+        var (statusCode, json) = await GetAsync(_sutWithCustomMapping, "results/per-call/precedence");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.PaymentRequired);
         json.ShouldBe(JsonHelper.Normalize(ExpectedJson));
     }
 
