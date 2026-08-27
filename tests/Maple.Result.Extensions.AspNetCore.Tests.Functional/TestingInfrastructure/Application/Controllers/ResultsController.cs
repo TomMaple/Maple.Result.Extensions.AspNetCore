@@ -11,7 +11,7 @@ public sealed class ResultsController : ControllerBase
     #region success
 
     [HttpGet("success")]
-    public IActionResult GetSuccess()
+    public ActionResult GetSuccess()
     {
         var result = Result.Success();
 
@@ -19,7 +19,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("success/value")]
-    public IActionResult GetSuccessWithValue()
+    public ActionResult GetSuccessWithValue()
     {
         var result = Result<TestValue>.FromValue(new TestValue(13, "Test value"));
 
@@ -27,7 +27,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("success/null-value")]
-    public IActionResult GetSuccessWithNullValue()
+    public ActionResult GetSuccessWithNullValue()
     {
         var result = Result<TestValue?>.FromValue(null);
 
@@ -39,7 +39,7 @@ public sealed class ResultsController : ControllerBase
     #region ErrorCategory.Validation
 
     [HttpGet("validation")]
-    public IActionResult GetValidation()
+    public ActionResult GetValidation()
     {
         var result = Result.FromError(Error.Validation(
             ErrorUri.Tag("tag:test.com,2026:validation"),
@@ -55,7 +55,7 @@ public sealed class ResultsController : ControllerBase
     #region ErrorCategory.Unauthenticated
 
     [HttpGet("unauthenticated")]
-    public IActionResult GetUnauthenticated()
+    public ActionResult GetUnauthenticated()
     {
         var result = Result.FromError(Error.Unauthenticated(
             ErrorUri.Tag("tag:test.com,2026:unauthenticated"),
@@ -71,7 +71,7 @@ public sealed class ResultsController : ControllerBase
     #region ErrorCategory.Unauthorized
 
     [HttpGet("unauthorized")]
-    public IActionResult GetUnauthorized()
+    public ActionResult GetUnauthorized()
     {
         var result = Result.FromError(Error.Unauthorized(
             ErrorUri.Tag("tag:test.com,2026:unauthorized"),
@@ -87,7 +87,7 @@ public sealed class ResultsController : ControllerBase
     #region ErrorCategory.NotFound
 
     [HttpGet("not-found")]
-    public IActionResult GetNotFound()
+    public ActionResult GetNotFound()
     {
         var result = Result.FromError(Error.NotFound(
             ErrorUri.Tag("tag:test.com,2026:not-found"),
@@ -103,7 +103,7 @@ public sealed class ResultsController : ControllerBase
     #region ErrorCategory.Timeout
 
     [HttpGet("timeout")]
-    public IActionResult GetTimeout()
+    public ActionResult GetTimeout()
     {
         var result = Result.FromError(Error.Timeout(
             ErrorUri.Tag("tag:test.com,2026:timeout"),
@@ -119,7 +119,7 @@ public sealed class ResultsController : ControllerBase
     #region ErrorCategory.Conflict
 
     [HttpGet("conflict")]
-    public IActionResult GetConflict()
+    public ActionResult GetConflict()
     {
         var result = Result.FromError(Error.Conflict(
             ErrorUri.Tag("tag:test.com,2026:conflict"),
@@ -135,7 +135,7 @@ public sealed class ResultsController : ControllerBase
     #region ErrorCategory.Critical
 
     [HttpGet("critical")]
-    public IActionResult GetCritical()
+    public ActionResult GetCritical()
     {
         var result = Result.FromError(Error.Critical(
             ErrorUri.Tag("tag:test.com,2026:critical"),
@@ -151,7 +151,7 @@ public sealed class ResultsController : ControllerBase
     #region ErrorCategory.NotImplemented
 
     [HttpGet("not-implemented")]
-    public IActionResult GetNotImplemented()
+    public ActionResult GetNotImplemented()
     {
         var result = Result.FromError(Error.NotImplemented(
             ErrorUri.Tag("tag:test.com,2026:not-implemented"),
@@ -167,7 +167,7 @@ public sealed class ResultsController : ControllerBase
     #region ErrorCategory.Unavailable
 
     [HttpGet("unavailable")]
-    public IActionResult GetUnavailable()
+    public ActionResult GetUnavailable()
     {
         var result = Result.FromError(Error.Unavailable(
             ErrorUri.Tag("tag:test.com,2026:unavailable"),
@@ -183,7 +183,7 @@ public sealed class ResultsController : ControllerBase
     #region ErrorCategory.Failure
 
     [HttpGet("failure/all-properties")]
-    public IActionResult GetFailureWithAllProperties()
+    public ActionResult GetFailureWithAllProperties()
     {
         var error = Error.Failure(
                 ErrorUri.Tag("tag:test.com,2026:failure"),
@@ -207,7 +207,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("failure/required-only")]
-    public IActionResult GetFailureWithRequiredPropertiesOnly()
+    public ActionResult GetFailureWithRequiredPropertiesOnly()
     {
         var result = Result.FromError(Error.Failure(
             ErrorUri.Tag("tag:test.com,2026:failure"),
@@ -217,7 +217,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("failure/detail-and-instance")]
-    public IActionResult GetFailureWithDetailAndInstance()
+    public ActionResult GetFailureWithDetailAndInstance()
     {
         var result = Result.FromError(Error.Failure(
             ErrorUri.Tag("tag:test.com,2026:failure"),
@@ -229,7 +229,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("failure/templated-detail")]
-    public IActionResult GetFailureWithTemplatedDetail()
+    public ActionResult GetFailureWithTemplatedDetail()
     {
         var result = Result.FromError(Error.Failure(
             ErrorUri.Tag("tag:test.com,2026:failure"),
@@ -247,7 +247,7 @@ public sealed class ResultsController : ControllerBase
     #region ErrorCategory.Failure, ToActionResult overloads
 
     [HttpGet("failure/overloads/result-controller")]
-    public IActionResult GetFailureFromResultWithControllerArgument()
+    public ActionResult GetFailureFromResultWithControllerArgument()
     {
         var result = Result.FromError(CreateFailureError());
 
@@ -255,7 +255,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("failure/overloads/controller-result")]
-    public IActionResult GetFailureFromControllerWithResultArgument()
+    public ActionResult GetFailureFromControllerWithResultArgument()
     {
         var result = Result.FromError(CreateFailureError());
 
@@ -263,7 +263,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("failure/overloads/generic-result-controller")]
-    public IActionResult GetFailureFromGenericResultWithControllerArgument()
+    public ActionResult GetFailureFromGenericResultWithControllerArgument()
     {
         var result = Result<TestValue>.FromError(CreateFailureError());
 
@@ -271,7 +271,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("failure/overloads/generic-controller-result")]
-    public IActionResult GetFailureFromControllerWithGenericResultArgument()
+    public ActionResult GetFailureFromControllerWithGenericResultArgument()
     {
         var result = Result<TestValue>.FromError(CreateFailureError());
 
@@ -283,7 +283,7 @@ public sealed class ResultsController : ControllerBase
     #region custom mappings passed to the method
 
     [HttpGet("per-call/matching")]
-    public IActionResult GetFailureWithMatchingMapping()
+    public ActionResult GetFailureWithMatchingMapping()
     {
         var result = Result.FromError(CreateFailureError());
 
@@ -291,7 +291,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("per-call/controller-result")]
-    public IActionResult GetFailureWithMatchingMappingFromController()
+    public ActionResult GetFailureWithMatchingMappingFromController()
     {
         var result = Result.FromError(CreateFailureError());
 
@@ -299,7 +299,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("per-call/generic-result-controller")]
-    public IActionResult GetFailureWithMatchingMappingFromGenericResult()
+    public ActionResult GetFailureWithMatchingMappingFromGenericResult()
     {
         var result = Result<TestValue>.FromError(CreateFailureError());
 
@@ -307,7 +307,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("per-call/generic-controller-result")]
-    public IActionResult GetFailureWithMatchingMappingFromControllerWithGenericResult()
+    public ActionResult GetFailureWithMatchingMappingFromControllerWithGenericResult()
     {
         var result = Result<TestValue>.FromError(CreateFailureError());
 
@@ -315,7 +315,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("per-call/not-matching")]
-    public IActionResult GetFailureWithNotMatchingMapping()
+    public ActionResult GetFailureWithNotMatchingMapping()
     {
         var result = Result.FromError(CreateFailureError());
 
@@ -323,7 +323,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("per-call/precedence")]
-    public IActionResult GetConflictWithMatchingMapping()
+    public ActionResult GetConflictWithMatchingMapping()
     {
         var result = Result.FromError(Error.Conflict(
             ErrorUri.Tag("tag:test.com,2026:conflict"),
@@ -339,7 +339,7 @@ public sealed class ResultsController : ControllerBase
     #region success status code
 
     [HttpGet("status-code/success")]
-    public IActionResult GetSuccessWithStatusCode()
+    public ActionResult GetSuccessWithStatusCode()
     {
         var result = Result.Success();
 
@@ -347,7 +347,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("status-code/controller-result")]
-    public IActionResult GetSuccessWithStatusCodeFromController()
+    public ActionResult GetSuccessWithStatusCodeFromController()
     {
         var result = Result.Success();
 
@@ -355,7 +355,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("status-code/success/value")]
-    public IActionResult GetSuccessWithValueAndStatusCode()
+    public ActionResult GetSuccessWithValueAndStatusCode()
     {
         var result = Result<TestValue>.FromValue(new TestValue(13, "Test value"));
 
@@ -363,7 +363,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("status-code/generic-controller-result")]
-    public IActionResult GetSuccessWithValueAndStatusCodeFromController()
+    public ActionResult GetSuccessWithValueAndStatusCodeFromController()
     {
         var result = Result<TestValue>.FromValue(new TestValue(13, "Test value"));
 
@@ -371,7 +371,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("status-code/success/null-value")]
-    public IActionResult GetSuccessWithNullValueAndStatusCode()
+    public ActionResult GetSuccessWithNullValueAndStatusCode()
     {
         var result = Result<TestValue?>.FromValue(null);
 
@@ -379,7 +379,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("status-code/success/null-value-status-code")]
-    public IActionResult GetSuccessWithNullValueAndNullValueStatusCode()
+    public ActionResult GetSuccessWithNullValueAndNullValueStatusCode()
     {
         var result = Result<TestValue?>.FromValue(null);
 
@@ -387,7 +387,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("status-code/error")]
-    public IActionResult GetFailureWithStatusCode()
+    public ActionResult GetFailureWithStatusCode()
     {
         var result = Result.FromError(CreateFailureError());
 
@@ -395,7 +395,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("status-code/error/custom-mapping")]
-    public IActionResult GetFailureWithStatusCodeAndMapping()
+    public ActionResult GetFailureWithStatusCodeAndMapping()
     {
         var result = Result.FromError(CreateFailureError());
 
@@ -407,7 +407,7 @@ public sealed class ResultsController : ControllerBase
     #region success mapping
 
     [HttpGet("success-mapping/success")]
-    public IActionResult GetSuccessWithSuccessMapping()
+    public ActionResult GetSuccessWithSuccessMapping()
     {
         var result = Result.Success();
 
@@ -415,7 +415,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("success-mapping/controller-result")]
-    public IActionResult GetSuccessWithSuccessMappingFromController()
+    public ActionResult GetSuccessWithSuccessMappingFromController()
     {
         var result = Result.Success();
 
@@ -423,7 +423,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("success-mapping/success/value")]
-    public IActionResult GetSuccessWithValueAndSuccessMapping()
+    public ActionResult GetSuccessWithValueAndSuccessMapping()
     {
         var result = Result<TestValue>.FromValue(new TestValue(13, "Test value"));
 
@@ -431,7 +431,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("success-mapping/generic-controller-result")]
-    public IActionResult GetSuccessWithValueAndSuccessMappingFromController()
+    public ActionResult GetSuccessWithValueAndSuccessMappingFromController()
     {
         var result = Result<TestValue>.FromValue(new TestValue(13, "Test value"));
 
@@ -439,7 +439,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("success-mapping/success/null-value")]
-    public IActionResult GetSuccessWithNullValueAndSuccessMapping()
+    public ActionResult GetSuccessWithNullValueAndSuccessMapping()
     {
         var result = Result<TestValue?>.FromValue(null);
 
@@ -447,7 +447,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("success-mapping/error")]
-    public IActionResult GetFailureWithSuccessMapping()
+    public ActionResult GetFailureWithSuccessMapping()
     {
         var result = Result.FromError(CreateFailureError());
 
@@ -455,7 +455,7 @@ public sealed class ResultsController : ControllerBase
     }
 
     [HttpGet("success-mapping/error/custom-mapping")]
-    public IActionResult GetFailureWithSuccessMappingAndCustomMapping()
+    public ActionResult GetFailureWithSuccessMappingAndCustomMapping()
     {
         var result = Result.FromError(CreateFailureError());
 
@@ -475,26 +475,26 @@ public sealed class ResultsController : ControllerBase
             ErrorUri.Locator("https://test.com/instances/failure"));
     }
 
-    private static IActionResult? MapFailureToPaymentRequired(Error error, ControllerBase controller)
+    private static ActionResult? MapFailureToPaymentRequired(Error error, ControllerBase controller)
     {
         return error.Category == ErrorCategory.Failure
             ? controller.StatusCode(StatusCodes.Status402PaymentRequired, new TestValue(11, error.Title))
             : null;
     }
 
-    private static IActionResult? MapConflictToPaymentRequired(Error error, ControllerBase controller)
+    private static ActionResult? MapConflictToPaymentRequired(Error error, ControllerBase controller)
     {
         return error.Category == ErrorCategory.Conflict
             ? controller.StatusCode(StatusCodes.Status402PaymentRequired, new TestValue(22, error.Title))
             : null;
     }
 
-    private static IActionResult MapSuccess(ControllerBase controller)
+    private static ActionResult MapSuccess(ControllerBase controller)
     {
         return controller.StatusCode(StatusCodes.Status202Accepted, new TestValue(31, "Mapped success"));
     }
 
-    private static IActionResult MapSuccessValue(TestValue? value, ControllerBase controller)
+    private static ActionResult MapSuccessValue(TestValue? value, ControllerBase controller)
     {
         return value is null
             ? controller.StatusCode(StatusCodes.Status205ResetContent)
