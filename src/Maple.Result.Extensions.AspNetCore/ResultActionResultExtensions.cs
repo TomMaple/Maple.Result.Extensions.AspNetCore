@@ -12,6 +12,8 @@ namespace Maple.Result.Extensions.AspNetCore;
 /// </summary>
 public static class ResultActionResultExtensions
 {
+    #region (ControllerBase, Result)
+
     /// <summary>
     ///     Creates an <see cref="ActionResult" /> from a <see cref="Result" /> instance.
     /// </summary>
@@ -72,6 +74,10 @@ public static class ResultActionResultExtensions
     {
         return result.ToActionResult(controller, customSuccessMapping, customErrorMapping);
     }
+
+    #endregion
+
+    #region (ControllerBase, Result<T>)
 
     /// <summary>
     ///     Creates an <see cref="ActionResult" /> from a <see cref="Result{T}" /> instance.
@@ -152,6 +158,10 @@ public static class ResultActionResultExtensions
         return result.ToActionResult(controller, customSuccessMapping, customErrorMapping);
     }
 
+    #endregion
+
+    #region (Result, ControllerBase)
+
     /// <summary>
     ///     Creates an <see cref="ActionResult" /> from a <see cref="Result" /> instance.
     /// </summary>
@@ -228,6 +238,10 @@ public static class ResultActionResultExtensions
             () => customSuccessMapping(controller),
             error => error.ToActionResult(controller, customErrorMapping));
     }
+
+    #endregion
+
+    #region (Result<T>, ControllerBase)
 
     /// <summary>
     ///     Creates an <see cref="ActionResult" /> from a <see cref="Result{T}" /> instance.
@@ -328,6 +342,8 @@ public static class ResultActionResultExtensions
             error => error.ToActionResult(controller, customErrorMapping));
     }
 
+    #endregion
+
     #region helper methods
 
     private static ActionResult ToActionResult(this Error error, ControllerBase controller,
@@ -353,19 +369,4 @@ public static class ResultActionResultExtensions
     private static ActionResult? TryMapUsingResultMappingOptions(Error error, ControllerBase controller)
     {
         var options = controller.HttpContext.RequestServices.GetService<IOptions<ResultMappingOptions>>();
-        var mappings = options?.Value.ErrorMappings;
-        if (mappings is not { Count: > 0 })
-            return null;
-
-        foreach (var mapping in mappings)
-        {
-            var mappingResult = mapping?.Invoke(error, controller);
-            if (mappingResult is not null)
-                return mappingResult;
-        }
-
-        return null;
-    }
-
-    #endregion
-}
+        var mapp
