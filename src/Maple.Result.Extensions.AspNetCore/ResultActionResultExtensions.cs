@@ -10,7 +10,7 @@ namespace Maple.Result.Extensions.AspNetCore;
 /// <summary>
 ///     The collection of extension methods for converting <see cref="Result" /> and <see cref="Result{T}" /> to <see cref="ActionResult" />.
 /// </summary>
-public static class ResultExtensions
+public static class ResultActionResultExtensions
 {
     /// <summary>
     ///     Creates an <see cref="ActionResult" /> from a <see cref="Result" /> instance.
