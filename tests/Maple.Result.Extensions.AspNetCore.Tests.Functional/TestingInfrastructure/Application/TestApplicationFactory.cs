@@ -10,7 +10,8 @@ using System.Threading.Tasks;
 namespace Maple.Result.Extensions.AspNetCore.Tests.Functional.TestingInfrastructure.Application;
 
 /// <summary>
-///     Starts an in-memory ASP.NET Core application hosting the <see cref="Controllers.ResultsController" />.
+///     Starts an in-memory ASP.NET Core application hosting the <see cref="Controllers.ResultsController" />
+///     and the Minimal API endpoints mapped by the <see cref="MinimalApiEndpoints" /> class.
 /// </summary>
 internal sealed class TestApplicationFactory : IAsyncDisposable
 {
@@ -37,6 +38,7 @@ internal sealed class TestApplicationFactory : IAsyncDisposable
 
         var application = builder.Build();
         application.MapControllers();
+        application.MapMinimalApiEndpoints();
 
         await application.StartAsync();
 
