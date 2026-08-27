@@ -18,25 +18,25 @@ public sealed class CustomMappingApplicationFixture : TestApplicationFixture
     private static void Configure(ResultMappingOptions options)
     {
         // Matches the errors of the ErrorCategory.Conflict category.
-        options.Mappings?.Add((error, controller) => error.Category == ErrorCategory.Conflict
+        options.ErrorMappings?.Add((error, controller) => error.Category == ErrorCategory.Conflict
             ? controller.StatusCode(StatusCodes.Status410Gone, new TestValue(99, error.Title))
             : null);
 
         // Matches a single error type, regardless of its category.
-        options.Mappings?.Add((error, controller) => error.TypeUri == ValidationTypeUri
+        options.ErrorMappings?.Add((error, controller) => error.TypeUri == ValidationTypeUri
             ? controller.StatusCode(StatusCodes.Status429TooManyRequests, new TestValue(42, error.TypeUri))
             : null);
 
         // The first of the two mappings matching the ErrorCategory.Timeout category wins.
-        options.Mappings?.Add((error, controller) => error.Category == ErrorCategory.Timeout
+        options.ErrorMappings?.Add((error, controller) => error.Category == ErrorCategory.Timeout
             ? controller.StatusCode(StatusCodes.Status426UpgradeRequired, new TestValue(1, "First matching mapping"))
             : null);
-        options.Mappings?.Add((error, controller) => error.Category == ErrorCategory.Timeout
+        options.ErrorMappings?.Add((error, controller) => error.Category == ErrorCategory.Timeout
             ? controller.StatusCode(StatusCodes.Status424FailedDependency, new TestValue(2, "Second matching mapping"))
             : null);
 
         // Uses the controller to add a response header on top of returning the value.
-        options.Mappings?.Add((error, controller) =>
+        options.ErrorMappings?.Add((error, controller) =>
         {
             if (error.Category != ErrorCategory.NotImplemented)
                 return null;

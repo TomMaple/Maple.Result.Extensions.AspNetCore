@@ -12,5 +12,5 @@ public class ResultMappingOptions
     /// <summary>
     ///     Gets the list of custom mappings for mapping errors to <see cref="IActionResult" />.
     /// </summary>
-    public List<Func<Error, ControllerBase, IActionResult?>>? Mappings { get; } = [];
+    public List<Func<Error, ControllerBase, IActionResult?>> ErrorMappings { get; } = [];
 }

@@ -353,7 +353,7 @@ public static class ResultExtensions
     private static IActionResult? TryMapUsingResultMappingOptions(Error error, ControllerBase controller)
     {
         var options = controller.HttpContext.RequestServices.GetService<IOptions<ResultMappingOptions>>();
-        var mappings = options?.Value.Mappings;
+        var mappings = options?.Value.ErrorMappings;
         if (mappings is not { Count: > 0 })
             return null;
 
