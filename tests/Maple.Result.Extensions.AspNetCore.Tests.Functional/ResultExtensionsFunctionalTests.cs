@@ -22,6 +22,22 @@ public class ResultExtensionsFunctionalTests
         }
         """;
 
+    private const string ExpectedMappedSuccessJson =
+        """
+        {
+          "id": 31,
+          "name": "Mapped success"
+        }
+        """;
+
+    private const string ExpectedMappedValueJson =
+        """
+        {
+          "id": 26,
+          "name": "Test value"
+        }
+        """;
+
     private const string ExpectedFailureMappingJson =
         """
         {
@@ -805,6 +821,87 @@ public class ResultExtensionsFunctionalTests
     {
         // Act
         var (statusCode, json) = await GetAsync(_sut, "results/status-code/error/custom-mapping");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.PaymentRequired);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedFailureMappingJson));
+    }
+
+    #endregion
+
+    #region success mapping
+
+    [Fact]
+    public async Task ToActionResult_SuccessfulResultWithSuccessMapping_ReturnsMappedResponse()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/success-mapping/success");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.Accepted);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedMappedSuccessJson));
+    }
+
+    [Fact]
+    public async Task ToActionResult_SuccessfulResultWithSuccessMappingFromController_ReturnsMappedResponse()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/success-mapping/controller-result");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.Accepted);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedMappedSuccessJson));
+    }
+
+    [Fact]
+    public async Task ToActionResult_SuccessfulResultWithValueAndSuccessMapping_ReturnsMappedValue()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/success-mapping/success/value");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.NonAuthoritativeInformation);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedMappedValueJson));
+    }
+
+    [Fact]
+    public async Task ToActionResult_SuccessfulResultWithValueAndSuccessMappingFromController_ReturnsMappedValue()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/success-mapping/generic-controller-result");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.NonAuthoritativeInformation);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedMappedValueJson));
+    }
+
+    [Fact]
+    public async Task ToActionResult_SuccessfulResultWithNullValueAndSuccessMapping_ReturnsMappedNullValueResponse()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/success-mapping/success/null-value");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.ResetContent);
+        json.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ToActionResult_ErrorWithSuccessMapping_ReturnsDefaultProblemDetails()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/success-mapping/error");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedFailureJson));
+    }
+
+    [Fact]
+    public async Task ToActionResult_ErrorWithSuccessMappingAndMappingPassedToTheMethod_ReturnsCustomMappedResponse()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/success-mapping/error/custom-mapping");
 
         // Assert
         statusCode.ShouldBe(HttpStatusCode.PaymentRequired);

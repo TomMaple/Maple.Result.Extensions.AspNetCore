@@ -404,6 +404,66 @@ public sealed class ResultsController : ControllerBase
 
     #endregion
 
+    #region success mapping
+
+    [HttpGet("success-mapping/success")]
+    public IActionResult GetSuccessWithSuccessMapping()
+    {
+        var result = Result.Success();
+
+        return result.ToActionResult(this, MapSuccess);
+    }
+
+    [HttpGet("success-mapping/controller-result")]
+    public IActionResult GetSuccessWithSuccessMappingFromController()
+    {
+        var result = Result.Success();
+
+        return this.ToActionResult(result, MapSuccess);
+    }
+
+    [HttpGet("success-mapping/success/value")]
+    public IActionResult GetSuccessWithValueAndSuccessMapping()
+    {
+        var result = Result<TestValue>.FromValue(new TestValue(13, "Test value"));
+
+        return result.ToActionResult(this, MapSuccessValue);
+    }
+
+    [HttpGet("success-mapping/generic-controller-result")]
+    public IActionResult GetSuccessWithValueAndSuccessMappingFromController()
+    {
+        var result = Result<TestValue>.FromValue(new TestValue(13, "Test value"));
+
+        return this.ToActionResult(result, MapSuccessValue);
+    }
+
+    [HttpGet("success-mapping/success/null-value")]
+    public IActionResult GetSuccessWithNullValueAndSuccessMapping()
+    {
+        var result = Result<TestValue?>.FromValue(null);
+
+        return result.ToActionResult(this, MapSuccessValue);
+    }
+
+    [HttpGet("success-mapping/error")]
+    public IActionResult GetFailureWithSuccessMapping()
+    {
+        var result = Result.FromError(CreateFailureError());
+
+        return result.ToActionResult(this, MapSuccess);
+    }
+
+    [HttpGet("success-mapping/error/custom-mapping")]
+    public IActionResult GetFailureWithSuccessMappingAndCustomMapping()
+    {
+        var result = Result.FromError(CreateFailureError());
+
+        return result.ToActionResult(this, MapSuccess, MapFailureToPaymentRequired);
+    }
+
+    #endregion
+
     #region helper methods
 
     private static Error CreateFailureError()
@@ -427,6 +487,18 @@ public sealed class ResultsController : ControllerBase
         return error.Category == ErrorCategory.Conflict
             ? controller.StatusCode(StatusCodes.Status402PaymentRequired, new TestValue(22, error.Title))
             : null;
+    }
+
+    private static IActionResult MapSuccess(ControllerBase controller)
+    {
+        return controller.StatusCode(StatusCodes.Status202Accepted, new TestValue(31, "Mapped success"));
+    }
+
+    private static IActionResult MapSuccessValue(TestValue? value, ControllerBase controller)
+    {
+        return value is null
+            ? controller.StatusCode(StatusCodes.Status205ResetContent)
+            : controller.StatusCode(StatusCodes.Status203NonAuthoritative, new TestValue(value.Id * 2, value.Name));
     }
 
     #endregion
