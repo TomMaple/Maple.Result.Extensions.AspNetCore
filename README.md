@@ -6,7 +6,8 @@ Maps the [Maple.Result](https://github.com/TomMaple/Result) to the HTTP response
 
 Check also my libraries:
 * [Maple.Result](https://github.com/TomMaple/Result),
-* <i>Maple.Result.Extensions.Functions.Worker</i> (coming soon),
+* *Maple.Result.Extensions.Functions.Worker* (coming soon)
+* [Maple.Result.Extensions.MinimalApi](https://github.com/TomMaple/Maple.Result.Extensions.MinimalApi),
 * [Maple.Result.Extensions.HttpClient](https://github.com/TomMaple/Maple.Result.Extensions.HttpClient).
 
 # Give it a star ⭐
