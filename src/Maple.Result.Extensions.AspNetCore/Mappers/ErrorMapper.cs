@@ -9,20 +9,16 @@ internal static class ErrorMapper
     {
         Dictionary<string, object?>? extensions = null;
 
-        var errorDetails = error.ErrorDetails
-            .Select(ErrorDetailsMapper.Map)
-            .ToArray();
-
-        if (errorDetails is { Length: > 0 })
+        if (error.ErrorDetails is { Count: > 0 })
         {
-            extensions ??= new Dictionary<string, object?>();
-            extensions["errors"] = errorDetails;
+            extensions ??= [];
+            extensions["errors"] = error.ErrorDetails.Select(ErrorDetailsMapper.Map).ToArray();
         }
 
         var errorDetailTemplated = TemplatedMessageMapper.Map(error.DetailTemplated);
         if (errorDetailTemplated is not null)
         {
-            extensions ??= new Dictionary<string, object?>();
+            extensions ??= [];
             extensions["detailTemplated"] = errorDetailTemplated;
         }
 
