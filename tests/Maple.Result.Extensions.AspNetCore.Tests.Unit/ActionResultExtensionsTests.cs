@@ -480,6 +480,21 @@ public class ActionResultExtensionsTests
         result.ShouldBeOfType<ObjectResult>().StatusCode.ShouldBe(StatusCodes.Status402PaymentRequired);
     }
 
+    [Fact]
+    public void ToActionResult_GenericResultWithErrorAndSuccessStatusCodeAndCustomMapping_ReturnsCustomMappedResult()
+    {
+        // Arrange
+        var controller = TestControllerFactory.Create();
+        var sut = Result<TestValue>.FromError(CreateFailureError());
+
+        // Act
+        var result = sut.ToActionResult(controller, StatusCodes.Status201Created,
+            customErrorMapping: MapFailureToPaymentRequired);
+
+        // Assert
+        result.ShouldBeOfType<ObjectResult>().StatusCode.ShouldBe(StatusCodes.Status402PaymentRequired);
+    }
+
     #endregion
 
     #region (Result<T>) success mapping
@@ -856,6 +871,73 @@ public class ActionResultExtensionsTests
 
         // Assert
         act.ShouldThrow<ArgumentNullException>().ParamName.ShouldBe("controller");
+    }
+
+    [Fact]
+    public void ToActionResult_NullResultWithSuccessMapping_ThrowsArgumentNullException()
+    {
+        // Arrange
+        var controller = TestControllerFactory.Create();
+
+        // Act
+        var act = () => ((Result)null!).ToActionResult(controller, MapSuccess);
+
+        // Assert
+        act.ShouldThrow<ArgumentNullException>().ParamName.ShouldBe("result");
+    }
+
+    [Fact]
+    public void ToActionResult_NullResultAndNullSuccessMapping_ThrowsArgumentNullExceptionForTheResult()
+    {
+        // Arrange
+        var controller = TestControllerFactory.Create();
+
+        // Act
+        var act = () => ((Result)null!).ToActionResult(
+            controller, (Func<ControllerBase, ActionResult>)null!);
+
+        // Assert
+        act.ShouldThrow<ArgumentNullException>().ParamName.ShouldBe("result");
+    }
+
+    [Fact]
+    public void ToActionResult_NullGenericResultWithSuccessStatusCode_ThrowsArgumentNullException()
+    {
+        // Arrange
+        var controller = TestControllerFactory.Create();
+
+        // Act
+        var act = () => ((Result<TestValue>)null!).ToActionResult(controller, StatusCodes.Status201Created);
+
+        // Assert
+        act.ShouldThrow<ArgumentNullException>().ParamName.ShouldBe("result");
+    }
+
+    [Fact]
+    public void ToActionResult_NullGenericResultWithSuccessMapping_ThrowsArgumentNullException()
+    {
+        // Arrange
+        var controller = TestControllerFactory.Create();
+
+        // Act
+        var act = () => ((Result<TestValue>)null!).ToActionResult(controller, MapSuccessValue);
+
+        // Assert
+        act.ShouldThrow<ArgumentNullException>().ParamName.ShouldBe("result");
+    }
+
+    [Fact]
+    public void ToActionResult_NullGenericResultAndNullSuccessMapping_ThrowsArgumentNullExceptionForTheResult()
+    {
+        // Arrange
+        var controller = TestControllerFactory.Create();
+
+        // Act
+        var act = () => ((Result<TestValue>)null!).ToActionResult(
+            controller, (Func<TestValue, ControllerBase, ActionResult>)null!);
+
+        // Assert
+        act.ShouldThrow<ArgumentNullException>().ParamName.ShouldBe("result");
     }
 
     #endregion
