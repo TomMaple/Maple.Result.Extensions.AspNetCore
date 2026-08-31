@@ -138,6 +138,47 @@ public class ResultExtensionsFunctionalTests
         json.ShouldBe(JsonHelper.Normalize(ExpectedJson));
     }
 
+    [Fact]
+    public async Task ToActionResult_ValidationErrorWithDetailVariants_ReturnsProblemDetailsWithErrorsExtension()
+    {
+        // Arrange
+        const string ExpectedJson =
+            """
+            {
+              "type": "tag:test.com,2026:validation",
+              "title": "Validation title",
+              "status": 400,
+              "detail": "Validation detail.",
+              "instance": "https://test.com/instances/validation",
+              "errors": [
+                {
+                  "pointer": "/age",
+                  "detail": "must be a positive integer",
+                  "detailTemplated": {
+                    "templateId": "test.age.mustBePositive",
+                    "params": { "min": 0 }
+                  }
+                },
+                {
+                  "detail": "must be provided"
+                },
+                {
+                  "pointer": "/name",
+                  "detail": "must not be empty",
+                  "detailTemplated": { "templateId": "test.name.required" }
+                }
+              ]
+            }
+            """;
+
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "results/validation/details");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.BadRequest);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedJson));
+    }
+
     #endregion
 
     #region ErrorCategory.Unauthenticated

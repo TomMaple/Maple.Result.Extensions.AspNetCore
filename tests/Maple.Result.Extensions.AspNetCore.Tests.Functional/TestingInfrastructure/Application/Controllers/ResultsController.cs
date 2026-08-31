@@ -50,6 +50,27 @@ public sealed class ResultsController : ControllerBase
         return result.ToActionResult(this);
     }
 
+    [HttpGet("validation/details")]
+    public ActionResult GetValidationWithDetailVariants()
+    {
+        var error = Error.Validation(
+            ErrorUri.Tag("tag:test.com,2026:validation"),
+            "Validation title",
+            "Validation detail.",
+            ErrorUri.Locator("https://test.com/instances/validation"));
+
+        error.AddDetail("/age", "must be a positive integer", "test.age.mustBePositive", ("min", (object)0));
+
+        // No pointer and no templated message, so both are omitted from the serialized detail.
+        error.AddDetail(null, "must be provided");
+
+        // A template id without parameters: AddDetail yields an empty parameter collection,
+        // which the mapper normalizes away, so "params" is omitted.
+        error.AddDetail("/name", "must not be empty", "test.name.required");
+
+        return Result.FromError(error).ToActionResult(this);
+    }
+
     #endregion
 
     #region ErrorCategory.Unauthenticated
