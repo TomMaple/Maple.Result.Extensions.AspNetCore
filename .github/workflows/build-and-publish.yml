@@ -25,6 +25,31 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Detect changes in the src folder
+      id: src_changes
+      shell: bash
+      run: |
+        if [ "${EVENT_NAME}" != "push" ]; then
+          # Only push events publish, so the comparison is not needed anywhere else.
+          CHANGED=false
+        elif [ -z "${BEFORE_SHA}" ] || [ "${BEFORE_SHA}" = "0000000000000000000000000000000000000000" ]; then
+          # The branch was just created, so there is no previous head to compare against.
+          # Assume the src folder changed, so that a publishable change is never silently skipped.
+          CHANGED=true
+        elif ! git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+          # The previous head is unreachable, which happens after a force push.
+          CHANGED=true
+        elif [ -n "$(git diff --name-only "${BEFORE_SHA}" "${GITHUB_SHA}" -- src)" ]; then
+          CHANGED=true
+        else
+          CHANGED=false
+        fi
+        echo "changed=${CHANGED}" >> $GITHUB_OUTPUT
+        echo "Changes in the src folder: ${CHANGED}"
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        BEFORE_SHA: ${{ github.event.before }}
+
     - name: Get semantic version
       uses: paulhatch/semantic-version@v5.4.0
       id: semantic_version
@@ -78,12 +103,12 @@ jobs:
       run: dotnet pack src/Maple.Result.Extensions.AspNetCore/Maple.Result.Extensions.AspNetCore.csproj --no-build -o ${{ env.ARTIFACTS_PATH }} -p:Version=${{ steps.calculate_version.outputs.package_version }} -p:InformationalVersion=${{ steps.calculate_version.outputs.informational_version }} --configuration Release
 
     - name: NuGet login
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/main' && steps.src_changes.outputs.changed == 'true'
       uses: NuGet/login@v1
       id: nuget_login
       with:
         user: ${{ secrets.NUGET_USER }}
 
     - name: NuGet push
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/main' && steps.src_changes.outputs.changed == 'true'
       run: dotnet nuget push ${{ env.ARTIFACTS_PATH }}/*.nupkg --api-key ${{steps.nuget_login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
