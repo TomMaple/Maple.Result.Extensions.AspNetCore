@@ -10,6 +10,9 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Maple.Result.Extensions.AspNetCore/Maple.Result.Extensions.AspNetCore.csproj" />
   </Folder>
