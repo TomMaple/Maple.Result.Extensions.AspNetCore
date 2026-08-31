@@ -39,6 +39,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Maple.Result.Extensions.AspNetCore.Tests.Unit" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\.resources\icon.png" Pack="true" PackagePath="" />
     <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
     <None Include="..\..\README.md" Pack="true" PackagePath="" />
