@@ -3,6 +3,7 @@ using Maple.Result.Extensions.AspNetCore.Tests.Unit.TestingInfrastructure.Models
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Net;
 
 namespace Maple.Result.Extensions.AspNetCore.Tests.Unit;
 
@@ -247,7 +248,7 @@ public class ActionResultExtensionsTests
         var sut = Result.Success();
 
         // Act
-        var result = sut.ToActionResult(controller, StatusCodes.Status202Accepted);
+        var result = sut.ToActionResult(controller, HttpStatusCode.Accepted);
 
         // Assert
         var statusCode = result.ShouldBeOfType<StatusCodeResult>();
@@ -262,7 +263,7 @@ public class ActionResultExtensionsTests
         var sut = Result.FromError(CreateFailureError());
 
         // Act
-        var result = sut.ToActionResult(controller, StatusCodes.Status202Accepted);
+        var result = sut.ToActionResult(controller, HttpStatusCode.Accepted);
 
         // Assert
         result.ShouldBeOfType<ObjectResult>().StatusCode.ShouldBe(StatusCodes.Status422UnprocessableEntity);
@@ -276,7 +277,7 @@ public class ActionResultExtensionsTests
         var sut = Result.FromError(CreateFailureError());
 
         // Act
-        var result = sut.ToActionResult(controller, StatusCodes.Status202Accepted, MapFailureToPaymentRequired);
+        var result = sut.ToActionResult(controller, HttpStatusCode.Accepted, MapFailureToPaymentRequired);
 
         // Assert
         result.ShouldBeOfType<ObjectResult>().StatusCode.ShouldBe(StatusCodes.Status402PaymentRequired);
@@ -412,7 +413,7 @@ public class ActionResultExtensionsTests
         var sut = Result<TestValue>.FromValue(value);
 
         // Act
-        var result = sut.ToActionResult(controller, StatusCodes.Status201Created);
+        var result = sut.ToActionResult(controller, HttpStatusCode.Created);
 
         // Assert
         var objectResult = result.ShouldBeOfType<ObjectResult>();
@@ -428,7 +429,7 @@ public class ActionResultExtensionsTests
         var sut = Result<TestValue?>.FromValue(null);
 
         // Act
-        var result = sut.ToActionResult(controller, StatusCodes.Status226IMUsed);
+        var result = sut.ToActionResult(controller, HttpStatusCode.IMUsed);
 
         // Assert
         var statusCode = result.ShouldBeOfType<StatusCodeResult>();
@@ -444,7 +445,7 @@ public class ActionResultExtensionsTests
 
         // Act
         var result = sut.ToActionResult(
-            controller, StatusCodes.Status203NonAuthoritative, StatusCodes.Status205ResetContent);
+            controller, HttpStatusCode.NonAuthoritativeInformation, HttpStatusCode.ResetContent);
 
         // Assert
         var statusCode = result.ShouldBeOfType<StatusCodeResult>();
@@ -459,7 +460,7 @@ public class ActionResultExtensionsTests
         var sut = Result<TestValue>.FromError(CreateFailureError());
 
         // Act
-        var result = sut.ToActionResult(controller, StatusCodes.Status201Created);
+        var result = sut.ToActionResult(controller, HttpStatusCode.Created);
 
         // Assert
         result.ShouldBeOfType<ObjectResult>().StatusCode.ShouldBe(StatusCodes.Status422UnprocessableEntity);
@@ -473,8 +474,8 @@ public class ActionResultExtensionsTests
         var sut = Result<TestValue>.FromError(CreateFailureError());
 
         // Act
-        var result = sut.ToActionResult(controller, StatusCodes.Status201Created,
-            StatusCodes.Status205ResetContent, MapFailureToPaymentRequired);
+        var result = sut.ToActionResult(controller, HttpStatusCode.Created,
+            HttpStatusCode.ResetContent, MapFailureToPaymentRequired);
 
         // Assert
         result.ShouldBeOfType<ObjectResult>().StatusCode.ShouldBe(StatusCodes.Status402PaymentRequired);
@@ -488,7 +489,7 @@ public class ActionResultExtensionsTests
         var sut = Result<TestValue>.FromError(CreateFailureError());
 
         // Act
-        var result = sut.ToActionResult(controller, StatusCodes.Status201Created,
+        var result = sut.ToActionResult(controller, HttpStatusCode.Created,
             customErrorMapping: MapFailureToPaymentRequired);
 
         // Assert
@@ -695,7 +696,7 @@ public class ActionResultExtensionsTests
         var sut = TestControllerFactory.Create();
 
         // Act
-        var result = sut.ToActionResult(Result.Success(), StatusCodes.Status202Accepted);
+        var result = sut.ToActionResult(Result.Success(), HttpStatusCode.Accepted);
 
         // Assert
         result.ShouldBeOfType<StatusCodeResult>().StatusCode.ShouldBe(StatusCodes.Status202Accepted);
@@ -736,7 +737,7 @@ public class ActionResultExtensionsTests
 
         // Act
         var result = sut.ToActionResult(Result<TestValue?>.FromValue(null),
-            StatusCodes.Status203NonAuthoritative, StatusCodes.Status205ResetContent);
+            HttpStatusCode.NonAuthoritativeInformation, HttpStatusCode.ResetContent);
 
         // Assert
         result.ShouldBeOfType<StatusCodeResult>().StatusCode.ShouldBe(StatusCodes.Status205ResetContent);
@@ -817,7 +818,7 @@ public class ActionResultExtensionsTests
         var controller = TestControllerFactory.Create();
 
         // Act
-        var act = () => ((Result)null!).ToActionResult(controller, StatusCodes.Status202Accepted);
+        var act = () => ((Result)null!).ToActionResult(controller, HttpStatusCode.Accepted);
 
         // Assert
         act.ShouldThrow<ArgumentNullException>().ParamName.ShouldBe("result");
@@ -907,7 +908,7 @@ public class ActionResultExtensionsTests
         var controller = TestControllerFactory.Create();
 
         // Act
-        var act = () => ((Result<TestValue>)null!).ToActionResult(controller, StatusCodes.Status201Created);
+        var act = () => ((Result<TestValue>)null!).ToActionResult(controller, HttpStatusCode.Created);
 
         // Assert
         act.ShouldThrow<ArgumentNullException>().ParamName.ShouldBe("result");

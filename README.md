@@ -43,7 +43,7 @@ public ActionResult Get(int id)
 // Success -> the given status code
 [HttpPost]
 public ActionResult Create(Order order)
-    => _orderService.Create(order).ToActionResult(this, StatusCodes.Status201Created);
+    => _orderService.Create(order).ToActionResult(this, HttpStatusCode.Created);
 
 // Errors -> mapped explicitly; the default mapping is used when the mapping returns null
 [HttpDelete("{id}/lines")]

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System;
+using System.Net;
 
 namespace Maple.Result.Extensions.AspNetCore;
 
@@ -47,7 +48,7 @@ public static class ActionResultExtensions
     /// </param>
     /// <returns>An <see cref="ActionResult" /> representing the <see cref="Result" />.</returns>
     public static ActionResult ToActionResult(this ControllerBase controller, Result result,
-        int successStatusCode, Func<Error, ControllerBase, ActionResult?>? customErrorMapping = null)
+        HttpStatusCode successStatusCode, Func<Error, ControllerBase, ActionResult?>? customErrorMapping = null)
     {
         return result.ToActionResult(controller, successStatusCode, customErrorMapping);
     }
@@ -124,7 +125,7 @@ public static class ActionResultExtensions
     /// </param>
     /// <returns>An <see cref="ActionResult" /> representing the <see cref="Result{T}" />.</returns>
     public static ActionResult ToActionResult<T>(this ControllerBase controller, Result<T> result,
-        int successStatusCode, int? successNoResponseStatusCode = null,
+        HttpStatusCode successStatusCode, HttpStatusCode? successNoResponseStatusCode = null,
         Func<Error, ControllerBase, ActionResult?>? customErrorMapping = null)
     {
         return result.ToActionResult(controller, successStatusCode, successNoResponseStatusCode, customErrorMapping);
@@ -200,13 +201,13 @@ public static class ActionResultExtensions
     /// </param>
     /// <returns>An <see cref="ActionResult" /> representing the <see cref="Result" />.</returns>
     public static ActionResult ToActionResult(this Result result, ControllerBase controller,
-        int successStatusCode, Func<Error, ControllerBase, ActionResult?>? customErrorMapping = null)
+        HttpStatusCode successStatusCode, Func<Error, ControllerBase, ActionResult?>? customErrorMapping = null)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(controller);
 
         return result.Match<ActionResult>(
-            () => controller.StatusCode(successStatusCode),
+            () => controller.StatusCode((int)successStatusCode),
             error => error.ToActionResult(controller, customErrorMapping));
     }
 
@@ -295,7 +296,7 @@ public static class ActionResultExtensions
     /// </param>
     /// <returns>An <see cref="ActionResult" /> representing the <see cref="Result{T}" />.</returns>
     public static ActionResult ToActionResult<T>(this Result<T> result, ControllerBase controller,
-        int successStatusCode, int? successNoResponseStatusCode = null,
+        HttpStatusCode successStatusCode, HttpStatusCode? successNoResponseStatusCode = null,
         Func<Error, ControllerBase, ActionResult?>? customErrorMapping = null)
     {
         ArgumentNullException.ThrowIfNull(result);
@@ -303,8 +304,8 @@ public static class ActionResultExtensions
 
         return result.Match(
             value => value is null
-                ? controller.StatusCode(successNoResponseStatusCode ?? successStatusCode)
-                : controller.StatusCode(successStatusCode, result.Value),
+                ? controller.StatusCode((int)(successNoResponseStatusCode ?? successStatusCode))
+                : controller.StatusCode((int)successStatusCode, result.Value),
             error => error.ToActionResult(controller, customErrorMapping));
     }
 

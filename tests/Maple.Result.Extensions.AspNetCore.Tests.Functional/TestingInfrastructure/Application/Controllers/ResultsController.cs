@@ -1,6 +1,7 @@
 using Maple.Result.Extensions.AspNetCore.Tests.Functional.TestingInfrastructure.Application.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace Maple.Result.Extensions.AspNetCore.Tests.Functional.TestingInfrastructure.Application.Controllers;
 
@@ -364,7 +365,7 @@ public sealed class ResultsController : ControllerBase
     {
         var result = Result.Success();
 
-        return result.ToActionResult(this, StatusCodes.Status202Accepted);
+        return result.ToActionResult(this, HttpStatusCode.Accepted);
     }
 
     [HttpGet("status-code/controller-result")]
@@ -372,7 +373,7 @@ public sealed class ResultsController : ControllerBase
     {
         var result = Result.Success();
 
-        return this.ToActionResult(result, StatusCodes.Status207MultiStatus);
+        return this.ToActionResult(result, HttpStatusCode.MultiStatus);
     }
 
     [HttpGet("status-code/success/value")]
@@ -380,7 +381,7 @@ public sealed class ResultsController : ControllerBase
     {
         var result = Result<TestValue>.FromValue(new TestValue(13, "Test value"));
 
-        return result.ToActionResult(this, StatusCodes.Status201Created);
+        return result.ToActionResult(this, HttpStatusCode.Created);
     }
 
     [HttpGet("status-code/generic-controller-result")]
@@ -388,7 +389,7 @@ public sealed class ResultsController : ControllerBase
     {
         var result = Result<TestValue>.FromValue(new TestValue(13, "Test value"));
 
-        return this.ToActionResult(result, StatusCodes.Status203NonAuthoritative);
+        return this.ToActionResult(result, HttpStatusCode.NonAuthoritativeInformation);
     }
 
     [HttpGet("status-code/success/null-value")]
@@ -396,7 +397,7 @@ public sealed class ResultsController : ControllerBase
     {
         var result = Result<TestValue?>.FromValue(null);
 
-        return result.ToActionResult(this, StatusCodes.Status226IMUsed);
+        return result.ToActionResult(this, HttpStatusCode.IMUsed);
     }
 
     [HttpGet("status-code/success/null-value-status-code")]
@@ -404,7 +405,7 @@ public sealed class ResultsController : ControllerBase
     {
         var result = Result<TestValue?>.FromValue(null);
 
-        return result.ToActionResult(this, StatusCodes.Status203NonAuthoritative, StatusCodes.Status205ResetContent);
+        return result.ToActionResult(this, HttpStatusCode.NonAuthoritativeInformation, HttpStatusCode.ResetContent);
     }
 
     [HttpGet("status-code/error")]
@@ -412,7 +413,7 @@ public sealed class ResultsController : ControllerBase
     {
         var result = Result.FromError(CreateFailureError());
 
-        return result.ToActionResult(this, StatusCodes.Status202Accepted);
+        return result.ToActionResult(this, HttpStatusCode.Accepted);
     }
 
     [HttpGet("status-code/error/custom-mapping")]
@@ -420,7 +421,7 @@ public sealed class ResultsController : ControllerBase
     {
         var result = Result.FromError(CreateFailureError());
 
-        return result.ToActionResult(this, StatusCodes.Status207MultiStatus, MapFailureToPaymentRequired);
+        return result.ToActionResult(this, HttpStatusCode.MultiStatus, MapFailureToPaymentRequired);
     }
 
     #endregion
