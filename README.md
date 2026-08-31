@@ -1,12 +1,15 @@
 # Maple.Result.Extensions.AspNetCore
-Maps the [Maple.Result](https://github.com/TomMaple/Result) to the HTTP response (ASP.NET Core version)
+Maps the [Maple.Result](https://github.com/TomMaple/Result) to the HTTP response (ASP.NET Core MVC version)
+
+This package maps to the MVC `ActionResult`. For Minimal APIs use
+[Maple.Result.Extensions.MinimalApi](https://github.com/TomMaple/Maple.Result.Extensions.MinimalApi).
 
 
 # Project status: EARLY STAGE
 
 Check also my libraries:
 * [Maple.Result](https://github.com/TomMaple/Result),
-* *Maple.Result.Extensions.Functions.Worker* (coming soon)
+* *Maple.Result.Extensions.Functions.Worker* (coming soon),
 * [Maple.Result.Extensions.MinimalApi](https://github.com/TomMaple/Maple.Result.Extensions.MinimalApi),
 * [Maple.Result.Extensions.HttpClient](https://github.com/TomMaple/Maple.Result.Extensions.HttpClient).
 
@@ -22,13 +25,52 @@ Do you like it? Show your support by giving this project a star!
 ✅ Support for Created (201) with Location header.  
 🔲 Documentation.
 
+# Usage
+```csharp
+using Maple.Result;
+using Maple.Result.Extensions.AspNetCore;
+
+// Success -> 204 No Content, error -> RFC 9457 problem details
+[HttpDelete("{id}")]
+public ActionResult Delete(int id)
+    => _orderService.Delete(id).ToActionResult(this);
+
+// Success -> 200 OK with the value (204 No Content when the value is null)
+[HttpGet("{id}")]
+public ActionResult Get(int id)
+    => _orderService.Get(id).ToActionResult(this);
+
+// Success -> the given status code
+[HttpPost]
+public ActionResult Create(Order order)
+    => _orderService.Create(order).ToActionResult(this, StatusCodes.Status201Created);
+
+// Errors -> mapped explicitly; the default mapping is used when the mapping returns null
+[HttpDelete("{id}/lines")]
+public ActionResult DeleteLines(int id)
+    => _orderService.DeleteLines(id).ToActionResult(this,
+        (error, controller) => error.Category == ErrorCategory.Conflict
+            ? controller.StatusCode(StatusCodes.Status410Gone)
+            : null);
+```
+
+The same error mapping can be registered once for the whole application, in which case it is used
+whenever no mapping is passed to the extension method:
+
+```csharp
+builder.Services.ConfigureResultMapping(options => options.ErrorMappings.Add(
+    (error, controller) => error.Category == ErrorCategory.Conflict
+        ? controller.StatusCode(StatusCodes.Status410Gone)
+        : null));
+```
+
 # Example Error Response
 Example
 ```json
 {
-    "type": "https://example.com/probs/out-of-credit", 
-    "status": 400,
+    "type": "https://example.com/probs/out-of-credit",
     "title": "You do not have enough credit.",
+    "status": 400,
     "detail": "Your current balance is 30, but that costs 50.",
     "instance": "/accounts/12345/msgs/abc",
     "errors": [
@@ -36,14 +78,14 @@ Example
             "pointer": "#/age",
             "detail": "must be a positive integer",
             "detailTemplated": {
-                "messageId":"user.details.age.mustBePositive"
+                "templateId":"user.details.age.mustBePositive"
             }
         },
         {
             "pointer": "#/profile/colour",
             "detail": "must be ‘green’, ‘red’ or ‘blue’",
             "detailTemplated": {
-                "messageId": "user.profile.colour",
+                "templateId": "user.profile.colour",
                 "params": {
                     "validValueIds": [
                         "user.profile.colour.green",
@@ -55,7 +97,7 @@ Example
         }
     ],
     "detailTemplated": {
-        "messageId": "user.account.balance.tooLow",
+        "templateId": "user.account.balance.tooLow",
         "params": {
             "errorCode": "UAB17",
             "accounts": [
