@@ -9,7 +9,8 @@ This package maps to the MVC `ActionResult`. For Minimal APIs use
 
 Check also my libraries:
 * [Maple.Result](https://github.com/TomMaple/Result),
-* *Maple.Result.Extensions.Functions.Worker* (coming soon),
+* [Maple.Result.Extensions.Functions.Worker](https://www.nuget.org/packages/Maple.Result.Extensions.Functions.Worker/),
+* [Maple.Result.Extensions.Functions.Worker.AspNetCore](https://github.com/TomMaple/Maple.Result.Extensions.AspNetCore/tree/main/src/Maple.Result.Extensions.Functions.Worker.AspNetCore),
 * [Maple.Result.Extensions.MinimalApi](https://github.com/TomMaple/Maple.Result.Extensions.MinimalApi),
 * [Maple.Result.Extensions.HttpClient](https://github.com/TomMaple/Maple.Result.Extensions.HttpClient).
 
@@ -63,6 +64,13 @@ builder.Services.ConfigureResultMapping(options => options.ErrorMappings.Add(
         ? controller.StatusCode(StatusCodes.Status410Gone)
         : null));
 ```
+
+# Azure Functions
+This package needs a controller, so it cannot be used in Azure Functions. Use instead:
+* [Maple.Result.Extensions.Functions.Worker.AspNetCore](https://github.com/TomMaple/Maple.Result.Extensions.AspNetCore/tree/main/src/Maple.Result.Extensions.Functions.Worker.AspNetCore)
+  with ASP.NET Core integration (`HttpRequest` and `IActionResult`),
+* [Maple.Result.Extensions.Functions.Worker](https://www.nuget.org/packages/Maple.Result.Extensions.Functions.Worker/)
+  without it (`HttpRequestData` and `HttpResponseData`).
 
 # Example Error Response
 Example

@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Maple.Result.Extensions.Functions.Worker.AspNetCore</AssemblyName>
+
+    <PackageId>Maple.Result.Extensions.Functions.Worker.AspNetCore</PackageId>
+    <Title>Provides mapping of the Maple.Result to the ASP.NET Core ActionResult in Azure Functions (isolated worker model) with ASP.NET Core integration.</Title>
+    <Description>Provides mapping of the Maple.Result to the ASP.NET Core ActionResult in Azure Functions (isolated worker model) with ASP.NET Core integration.</Description>
+    <Authors>Tom Maple</Authors>
+    <PublisherName>Tom Maple</PublisherName>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageTags>Result;Error;RFC-9457;RFC-7807;AzureFunctions</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <PackageProjectUrl>https://github.com/TomMaple/Maple.Result.Extensions.AspNetCore</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/TomMaple/Maple.Result.Extensions.AspNetCore</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Maple.Result" Version="2.8.0" />
+  </ItemGroup>
+
+  <!-- Shared with the MVC package, so that both packages map errors the same way, without depending on each other. -->
+  <ItemGroup>
+    <Compile Include="..\Maple.Result.Extensions.AspNetCore\Mappers\*.cs" Link="Mappers\%(Filename)%(Extension)" />
+    <Compile Include="..\Maple.Result.Extensions.AspNetCore\ViewModels\*.cs" Link="ViewModels\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\.resources\icon.png" Pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>
