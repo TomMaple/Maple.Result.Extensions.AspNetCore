@@ -171,21 +171,20 @@ public static class ActionResultExtensions
             return mappingResult;
 
         // Fallback to default mapping
+        var statusCode = ErrorCategoryMapper.GetStatusCode(error.Category);
+        var extensions = ErrorMapper.MapExtensions(error);
+
         var problemDetails = new ProblemDetails
         {
-            Status = ErrorCategoryMapper.GetStatusCode(error.Category),
+            Status = statusCode,
             Type = error.TypeUri,
             Title = error.Title,
             Detail = error.Detail,
             Instance = error.InstanceUri
         };
 
-        var extensions = ErrorMapper.MapExtensions(error);
         if (extensions is not null)
-        {
-            foreach (var extension in extensions)
-                problemDetails.Extensions[extension.Key] = extension.Value;
-        }
+            problemDetails.Extensions = extensions;
 
         return new ProblemDetailsResult(problemDetails);
     }
