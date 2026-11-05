@@ -22,6 +22,12 @@ internal static class FunctionEndpoints
 
     #endregion
 
+    #region read-only fields
+
+    private static readonly ActionResult CachedErrorResult = Result.FromError(CreateFailureError()).ToActionResult();
+
+    #endregion
+
     internal static void MapFunctionEndpoints(this IEndpointRouteBuilder endpoints)
     {
         Map(endpoints, "success", () => Result.Success().ToActionResult());
@@ -31,6 +37,10 @@ internal static class FunctionEndpoints
         Map(endpoints, "error/custom-mapping",
             () => Result.FromError(CreateFailureError()).ToActionResult(customErrorMapping: MapFailureToPaymentRequired));
         Map(endpoints, "error/templated", () => Result.FromError(CreateTemplatedError()).ToActionResult());
+        Map(endpoints, "error/details", () => Result.FromError(CreateErrorWithDetails()).ToActionResult());
+        Map(endpoints, "error/cached", () => CachedErrorResult);
+        Map(endpoints, "error/replaced-value", CreateErrorResultWithReplacedValue);
+        Map(endpoints, "error/changed-result", CreateChangedErrorResult);
 
         Map(endpoints, "value", () => Result<TestValue>.FromValue(CreateValue()).ToActionResult());
         Map(endpoints, "value/null", () => Result<TestValue?>.FromValue(null).ToActionResult());
@@ -72,6 +82,34 @@ internal static class FunctionEndpoints
             ErrorUri.Locator(FailureInstanceUri),
             "errors.failure.detail",
             ("key1", "value1"));
+    }
+
+    private static Error CreateErrorWithDetails()
+    {
+        return Error.Validation(
+                ErrorUri.Tag("tag:test.com,2026:validation"),
+                "Validation title",
+                "Validation detail.",
+                ErrorUri.Locator("https://test.com/instances/validation"))
+            .AddDetail("#/age", "must be a positive integer", "errors.age.positive", ("min", 0))
+            .AddDetail("#/name", "must not be empty");
+    }
+
+    private static ObjectResult CreateErrorResultWithReplacedValue()
+    {
+        var result = (ObjectResult)Result.FromError(CreateFailureError()).ToActionResult();
+        result.Value = CreateValue();
+
+        return result;
+    }
+
+    private static ObjectResult CreateChangedErrorResult()
+    {
+        var result = (ObjectResult)Result.FromError(CreateFailureError()).ToActionResult();
+        result.StatusCode = StatusCodes.Status409Conflict;
+        result.ContentTypes.Add("application/json");
+
+        return result;
     }
 
     private static ActionResult MapSuccess()

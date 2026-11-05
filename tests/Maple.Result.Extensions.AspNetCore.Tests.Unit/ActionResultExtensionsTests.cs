@@ -1,3 +1,4 @@
+using Maple.Result.Extensions.AspNetCore.Configuration;
 using Maple.Result.Extensions.AspNetCore.Tests.Unit.TestingInfrastructure;
 using Maple.Result.Extensions.AspNetCore.Tests.Unit.TestingInfrastructure.Models;
 using Microsoft.AspNetCore.Http;
@@ -832,6 +833,22 @@ public class ActionResultExtensionsTests
 
         // Assert
         result.ShouldBeOfType<ObjectResult>().StatusCode.ShouldBe(StatusCodes.Status402PaymentRequired);
+    }
+
+    #endregion
+
+    #region public API
+
+    [Fact]
+    public void Assembly_Always_ExposesOnlyTheExtensionMethodsAndTheirConfiguration()
+    {
+        // Act
+        var exportedTypes = typeof(ActionResultExtensions).Assembly.GetExportedTypes();
+
+        // Assert
+        exportedTypes.ShouldBe(
+            [typeof(ActionResultExtensions), typeof(ServiceCollectionExtensions), typeof(ResultMappingOptions)],
+            ignoreOrder: true);
     }
 
     #endregion

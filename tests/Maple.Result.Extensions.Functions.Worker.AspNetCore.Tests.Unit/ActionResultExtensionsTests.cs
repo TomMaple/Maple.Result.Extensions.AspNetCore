@@ -6,7 +6,9 @@ using System.Net;
 
 namespace Maple.Result.Extensions.Functions.Worker.AspNetCore.Tests.Unit;
 
-// The alias is declared inside the namespace so that it takes precedence over the Maple.Result type of the same name.
+// The aliases are declared inside the namespace so that they take precedence over the Maple.Result types
+// of the same name.
+using ErrorDetail = Maple.Result.Extensions.AspNetCore.ViewModels.ErrorDetail;
 using TemplatedMessage = Maple.Result.Extensions.AspNetCore.ViewModels.TemplatedMessage;
 
 public class ActionResultExtensionsTests
@@ -97,6 +99,41 @@ public class ActionResultExtensionsTests
             .Value.ShouldBeOfType<ProblemDetails>();
         problem.Extensions["detailTemplated"].ShouldBeOfType<TemplatedMessage>()
             .TemplateId.ShouldBe("errors.failure.detail");
+    }
+
+    [Fact]
+    public void ToActionResult_ErrorWithDetails_AddsTheErrorsExtension()
+    {
+        // Arrange
+        var error = Error.Validation(
+                ErrorUri.Tag("tag:test.com,2026:validation"),
+                "Validation title",
+                "Validation detail.",
+                ErrorUri.Locator("https://test.com/instances/validation"))
+            .AddDetail("#/property1", "Property 1 detail.", "errors.property1", ("key1", "value1"))
+            .AddDetail("#/property2", "Property 2 detail.");
+        var sut = Result.FromError(error);
+
+        // Act
+        var result = sut.ToActionResult();
+
+        // Assert
+        var problem = result.ShouldBeAssignableTo<ObjectResult>().ShouldNotBeNull()
+            .Value.ShouldBeOfType<ProblemDetails>();
+        problem.Extensions.ShouldNotContainKey("detailTemplated");
+
+        var errors = problem.Extensions["errors"].ShouldBeOfType<ErrorDetail[]>();
+        errors.Length.ShouldBe(2);
+
+        errors[0].PropertyPointer.ShouldBe("#/property1");
+        errors[0].Detail.ShouldBe("Property 1 detail.");
+        var detailTemplated = errors[0].DetailTemplated.ShouldNotBeNull();
+        detailTemplated.TemplateId.ShouldBe("errors.property1");
+        detailTemplated.Params.ShouldNotBeNull()["key1"].ShouldBe("value1");
+
+        errors[1].PropertyPointer.ShouldBe("#/property2");
+        errors[1].Detail.ShouldBe("Property 2 detail.");
+        errors[1].DetailTemplated.ShouldBeNull();
     }
 
     [Fact]
@@ -411,6 +448,20 @@ public class ActionResultExtensionsTests
 
         // Assert
         result.ShouldBeOfType<StatusCodeResult>().StatusCode.ShouldBe(StatusCodes.Status202Accepted);
+    }
+
+    #endregion
+
+    #region public API
+
+    [Fact]
+    public void Assembly_Always_ExposesOnlyTheExtensionMethods()
+    {
+        // Act
+        var exportedTypes = typeof(ActionResultExtensions).Assembly.GetExportedTypes();
+
+        // Assert
+        exportedTypes.ShouldBe([typeof(ActionResultExtensions)]);
     }
 
     #endregion

@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 namespace Maple.Result.Extensions.Functions.Worker.AspNetCore.Tests.Functional;
 
 public class ActionResultExtensionsFunctionalTests
-    : IClassFixture<TestApplicationFixture>, IClassFixture<CustomizedProblemDetailsApplicationFixture>
+    : IClassFixture<TestApplicationFixture>,
+        IClassFixture<CustomizedProblemDetailsApplicationFixture>,
+        IClassFixture<CustomizedStatusApplicationFixture>
 {
     #region consts
 
@@ -37,6 +39,7 @@ public class ActionResultExtensionsFunctionalTests
 
     private readonly HttpClient _sut;
     private readonly HttpClient _sutWithCustomizedProblemDetails;
+    private readonly HttpClient _sutWithCustomizedStatus;
 
     #endregion
 
@@ -44,10 +47,12 @@ public class ActionResultExtensionsFunctionalTests
 
     public ActionResultExtensionsFunctionalTests(
         TestApplicationFixture fixture,
-        CustomizedProblemDetailsApplicationFixture customizedFixture)
+        CustomizedProblemDetailsApplicationFixture customizedFixture,
+        CustomizedStatusApplicationFixture customizedStatusFixture)
     {
         _sut = fixture.Client;
         _sutWithCustomizedProblemDetails = customizedFixture.Client;
+        _sutWithCustomizedStatus = customizedStatusFixture.Client;
     }
 
     #endregion
@@ -187,6 +192,98 @@ public class ActionResultExtensionsFunctionalTests
         customized.ShouldNotBeNull().GetValue<bool>().ShouldBeTrue();
     }
 
+    [Fact]
+    public async Task ToActionResult_ErrorWithDetails_ReturnsTheErrorsExtension()
+    {
+        // Arrange
+        const string ExpectedJson =
+            """
+            {
+              "type": "tag:test.com,2026:validation",
+              "title": "Validation title",
+              "status": 400,
+              "detail": "Validation detail.",
+              "instance": "https://test.com/instances/validation",
+              "errors": [
+                {
+                  "pointer": "#/age",
+                  "detail": "must be a positive integer",
+                  "detailTemplated": {
+                    "templateId": "errors.age.positive",
+                    "params": { "min": 0 }
+                  }
+                },
+                {
+                  "pointer": "#/name",
+                  "detail": "must not be empty"
+                }
+              ]
+            }
+            """;
+
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "error/details");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.BadRequest);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedJson));
+    }
+
+    [Fact]
+    public async Task ToActionResult_ErrorWithCustomizedStatus_ReturnsTheSameStatusInTheResponseAndTheBody()
+    {
+        // Arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        // Act
+        using var response = await _sutWithCustomizedStatus.GetAsync("error", cancellationToken);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+
+        var json = await response.Content.ReadAsStringAsync(cancellationToken);
+        JsonNode.Parse(json).ShouldNotBeNull()["status"].ShouldNotBeNull().GetValue<int>().ShouldBe(400);
+    }
+
+    [Fact]
+    public async Task ToActionResult_ErrorResultExecutedManyTimes_ReturnsTheTraceIdOfEachRequest()
+    {
+        // Act
+        var firstTraceId = await GetTraceIdAsync(_sut, "error/cached");
+        var secondTraceId = await GetTraceIdAsync(_sut, "error/cached");
+
+        // Assert
+        secondTraceId.ShouldNotBe(firstTraceId);
+    }
+
+    [Fact]
+    public async Task ToActionResult_ErrorResultWithReplacedValue_ReturnsTheReplacedValue()
+    {
+        // Act
+        var (statusCode, json) = await GetAsync(_sut, "error/replaced-value");
+
+        // Assert
+        statusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
+        json.ShouldBe(JsonHelper.Normalize(ExpectedValueJson));
+    }
+
+    [Fact]
+    public async Task ToActionResult_ErrorResultWithChangedStatusCodeAndContentType_AppliesTheChanges()
+    {
+        // Arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        // Act
+        using var response = await _sut.GetAsync("error/changed-result", cancellationToken);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        response.Content.Headers.ContentType.ShouldNotBeNull().MediaType.ShouldBe("application/json");
+
+        var json = await response.Content.ReadAsStringAsync(cancellationToken);
+        JsonNode.Parse(json).ShouldNotBeNull()["status"].ShouldNotBeNull().GetValue<int>().ShouldBe(409);
+    }
+
     #endregion
 
     #region Result<T>
@@ -258,6 +355,17 @@ public class ActionResultExtensionsFunctionalTests
     #endregion
 
     #region helper methods
+
+    private static async Task<string> GetTraceIdAsync(HttpClient client, string route)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        using var response = await client.GetAsync(route, cancellationToken);
+
+        var json = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        return JsonNode.Parse(json).ShouldNotBeNull()["traceId"].ShouldNotBeNull().GetValue<string>();
+    }
 
     private static async Task<(HttpStatusCode StatusCode, string Json)> GetAsync(HttpClient client, string route)
     {
