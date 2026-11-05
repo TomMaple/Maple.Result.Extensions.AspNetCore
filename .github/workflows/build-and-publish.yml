@@ -114,4 +114,4 @@ jobs:
 
     - name: NuGet push
       if: github.ref == 'refs/heads/main' && steps.src_changes.outputs.changed == 'true'
-      run: dotnet nuget push ${{ env.ARTIFACTS_PATH }}/*.nupkg --api-key ${{steps.nuget_login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ${{ env.ARTIFACTS_PATH }}/*.nupkg --api-key ${{steps.nuget_login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate
