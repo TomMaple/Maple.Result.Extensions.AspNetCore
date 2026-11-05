@@ -50,6 +50,8 @@ public IActionResult DeleteOrderLines(
 Errors are returned as RFC 9457 problem details, in the same format as in
 [Maple.Result.Extensions.AspNetCore](https://www.nuget.org/packages/Maple.Result.Extensions.AspNetCore/). They include
 the `traceId` extension, and the `CustomizeProblemDetails` option of `AddProblemDetails` is applied to them.
+This option runs before the `errors` and `detailTemplated` extensions are added, so it cannot read, change or remove
+them. To control them, use `customErrorMapping`.
 
 # Good to know
 * There are no global mappings. To use the same mapping in many functions, pass a shared static method.
