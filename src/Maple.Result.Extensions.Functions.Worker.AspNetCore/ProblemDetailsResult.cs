@@ -25,22 +25,34 @@ internal sealed class ProblemDetailsResult : ObjectResult
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        // The value has to be replaced here, not in the OnFormatting method, because the ObjectResultExecutor
-        // reads the value before it calls that method.
-        Value = CreateProblemDetails(context, (ProblemDetails)Value!);
+        // This instance is returned as an ObjectResult, so the caller could have replaced the value.
+        if (Value is not ProblemDetails source)
+            return base.ExecuteResultAsync(context);
 
-        return base.ExecuteResultAsync(context);
+        // A new result is executed, because the value has to be replaced before the ObjectResultExecutor reads it,
+        // and this instance has to stay unchanged, as it can be executed many times.
+        var problemDetails = CreateProblemDetails(context, source);
+        var result = new ObjectResult(problemDetails)
+        {
+            StatusCode = problemDetails.Status,
+            Formatters = Formatters
+        };
+
+        foreach (var contentType in ContentTypes)
+            result.ContentTypes.Add(contentType);
+
+        return result.ExecuteResultAsync(context);
     }
 
     #region helper methods
 
-    private static ProblemDetails CreateProblemDetails(ActionContext context, ProblemDetails source)
+    private ProblemDetails CreateProblemDetails(ActionContext context, ProblemDetails source)
     {
         var httpContext = context.HttpContext;
         var factory = httpContext.RequestServices.GetRequiredService<ProblemDetailsFactory>();
 
         var problemDetails = factory.CreateProblemDetails(
-            httpContext, source.Status, source.Title, source.Type, source.Detail, source.Instance);
+            httpContext, StatusCode ?? source.Status, source.Title, source.Type, source.Detail, source.Instance);
 
         foreach (var extension in source.Extensions)
             problemDetails.Extensions[extension.Key] = extension.Value;
