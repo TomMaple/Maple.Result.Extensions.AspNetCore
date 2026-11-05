@@ -17,18 +17,23 @@ public static class ActionResultExtensions
     ///     Creates an <see cref="ActionResult" /> from a <see cref="Result" /> instance.
     /// </summary>
     /// <param name="result">The <see cref="Result" /> to convert.</param>
+    /// <param name="customSuccessMapping">
+    ///     An optional mapping function used to convert a successful <see cref="Result" /> to
+    ///     an <see cref="ActionResult" />. When it is not provided, the 204 No Content response is returned.
+    /// </param>
     /// <param name="customErrorMapping">
     ///     An optional custom mapping function used to convert an <see cref="Error" /> to
     ///     an <see cref="ActionResult" />. The default mapping is used when it returns <see langword="null" />.
     /// </param>
     /// <returns>An <see cref="ActionResult" /> representing the <see cref="Result" />.</returns>
     public static ActionResult ToActionResult(this Result result,
+        Func<ActionResult>? customSuccessMapping = null,
         Func<Error, ActionResult?>? customErrorMapping = null)
     {
         ArgumentNullException.ThrowIfNull(result);
 
         return result.Match<ActionResult>(
-            () => new NoContentResult(),
+            () => customSuccessMapping is null ? new NoContentResult() : customSuccessMapping(),
             error => error.ToActionResult(customErrorMapping));
     }
 
@@ -53,30 +58,6 @@ public static class ActionResultExtensions
             error => error.ToActionResult(customErrorMapping));
     }
 
-    /// <summary>
-    ///     Creates an <see cref="ActionResult" /> from a <see cref="Result" /> instance, using the given
-    ///     mapping function when it is successful.
-    /// </summary>
-    /// <param name="result">The <see cref="Result" /> to convert.</param>
-    /// <param name="customSuccessMapping">
-    ///     The mapping function used to convert a successful <see cref="Result" /> to an <see cref="ActionResult" />.
-    /// </param>
-    /// <param name="customErrorMapping">
-    ///     An optional custom mapping function used to convert an <see cref="Error" /> to
-    ///     an <see cref="ActionResult" />. The default mapping is used when it returns <see langword="null" />.
-    /// </param>
-    /// <returns>An <see cref="ActionResult" /> representing the <see cref="Result" />.</returns>
-    public static ActionResult ToActionResult(this Result result, Func<ActionResult> customSuccessMapping,
-        Func<Error, ActionResult?>? customErrorMapping = null)
-    {
-        ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(customSuccessMapping);
-
-        return result.Match(
-            customSuccessMapping,
-            error => error.ToActionResult(customErrorMapping));
-    }
-
     #endregion
 
     #region Result<T>
@@ -86,20 +67,27 @@ public static class ActionResultExtensions
     /// </summary>
     /// <typeparam name="T">The type of the <see cref="Result{T}" /> value.</typeparam>
     /// <param name="result">The <see cref="Result{T}" /> to convert.</param>
+    /// <param name="customSuccessMapping">
+    ///     An optional mapping function used to convert the value of a successful <see cref="Result{T}" /> to
+    ///     an <see cref="ActionResult" />. It is also invoked when the value is <see langword="null" />.
+    ///     When it is not provided, the 200 OK response with the value is returned, or the 204 No Content response
+    ///     when the value is <see langword="null" />.
+    /// </param>
     /// <param name="customErrorMapping">
     ///     An optional custom mapping function used to convert an <see cref="Error" /> to
     ///     an <see cref="ActionResult" />. The default mapping is used when it returns <see langword="null" />.
     /// </param>
     /// <returns>An <see cref="ActionResult" /> representing the <see cref="Result{T}" />.</returns>
     public static ActionResult ToActionResult<T>(this Result<T> result,
+        Func<T, ActionResult>? customSuccessMapping = null,
         Func<Error, ActionResult?>? customErrorMapping = null)
     {
         ArgumentNullException.ThrowIfNull(result);
 
         return result.Match(
-            value => value is null
-                ? new NoContentResult()
-                : new OkObjectResult(value),
+            value => customSuccessMapping is null
+                ? CreateDefaultActionResult(value)
+                : customSuccessMapping(value),
             error => error.ToActionResult(customErrorMapping));
     }
 
@@ -131,37 +119,16 @@ public static class ActionResultExtensions
             error => error.ToActionResult(customErrorMapping));
     }
 
-    /// <summary>
-    ///     Creates an <see cref="ActionResult" /> from a <see cref="Result{T}" /> instance, using the given
-    ///     mapping function when it is successful.
-    /// </summary>
-    /// <typeparam name="T">The type of the <see cref="Result{T}" /> value.</typeparam>
-    /// <param name="result">The <see cref="Result{T}" /> to convert.</param>
-    /// <param name="customSuccessMapping">
-    ///     The mapping function used to convert the value of a successful <see cref="Result{T}" /> to
-    ///     an <see cref="ActionResult" />. It is also invoked when the value is <see langword="null" />.
-    ///     A lambda needs an explicitly typed parameter, otherwise the overload taking
-    ///     the custom error mapping is selected.
-    /// </param>
-    /// <param name="customErrorMapping">
-    ///     An optional custom mapping function used to convert an <see cref="Error" /> to
-    ///     an <see cref="ActionResult" />. The default mapping is used when it returns <see langword="null" />.
-    /// </param>
-    /// <returns>An <see cref="ActionResult" /> representing the <see cref="Result{T}" />.</returns>
-    public static ActionResult ToActionResult<T>(this Result<T> result, Func<T, ActionResult> customSuccessMapping,
-        Func<Error, ActionResult?>? customErrorMapping = null)
-    {
-        ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(customSuccessMapping);
-
-        return result.Match(
-            customSuccessMapping,
-            error => error.ToActionResult(customErrorMapping));
-    }
-
     #endregion
 
     #region helper methods
+
+    private static ActionResult CreateDefaultActionResult<T>(T value)
+    {
+        return value is null
+            ? new NoContentResult()
+            : new OkObjectResult(value);
+    }
 
     private static ActionResult ToActionResult(this Error error, Func<Error, ActionResult?>? customErrorMapping)
     {

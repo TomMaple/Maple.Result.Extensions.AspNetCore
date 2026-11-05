@@ -169,7 +169,7 @@ public class ActionResultExtensionsTests
         var sut = Result.FromError(CreateFailureError());
 
         // Act
-        var result = sut.ToActionResult(controller, MapFailureToPaymentRequired);
+        var result = sut.ToActionResult(controller, customErrorMapping: MapFailureToPaymentRequired);
 
         // Assert
         var objectResult = result.ShouldBeOfType<ObjectResult>();
@@ -185,7 +185,7 @@ public class ActionResultExtensionsTests
         var sut = Result.FromError(CreateFailureError());
 
         // Act
-        var result = sut.ToActionResult(controller, MapConflictToPaymentRequired);
+        var result = sut.ToActionResult(controller, customErrorMapping: MapConflictToPaymentRequired);
 
         // Assert
         var objectResult = result.ShouldBeOfType<ObjectResult>();
@@ -202,7 +202,7 @@ public class ActionResultExtensionsTests
         var invoked = false;
 
         // Act
-        var result = sut.ToActionResult(controller, (_, _) =>
+        var result = sut.ToActionResult(controller, customErrorMapping: (_, _) =>
         {
             invoked = true;
             return null;
@@ -224,7 +224,7 @@ public class ActionResultExtensionsTests
         ControllerBase? mappedController = null;
 
         // Act
-        sut.ToActionResult(controller, (e, c) =>
+        sut.ToActionResult(controller, customErrorMapping: (e, c) =>
         {
             mappedError = e;
             mappedController = c;
@@ -394,7 +394,7 @@ public class ActionResultExtensionsTests
         var sut = Result<TestValue>.FromError(CreateFailureError());
 
         // Act
-        var result = sut.ToActionResult(controller, MapFailureToPaymentRequired);
+        var result = sut.ToActionResult(controller, customErrorMapping: MapFailureToPaymentRequired);
 
         // Assert
         result.ShouldBeOfType<ObjectResult>().StatusCode.ShouldBe(StatusCodes.Status402PaymentRequired);
@@ -540,17 +540,66 @@ public class ActionResultExtensionsTests
         var invoked = false;
 
         // Act
-        // The lambda parameter is typed explicitly so that the success mapping overload is selected
-        // instead of the one taking the custom error mapping.
-        var result = sut.ToActionResult(controller, (TestValue _, ControllerBase c) =>
+        // The body of the lambda would also compile for an Error parameter.
+        var result = sut.ToActionResult(controller, (value, c) =>
         {
             invoked = true;
-            return c.Ok();
+            return c.Ok(value);
         });
 
         // Assert
-        result.ShouldBeOfType<ObjectResult>().StatusCode.ShouldBe(StatusCodes.Status422UnprocessableEntity);
+        var objectResult = result.ShouldBeOfType<ObjectResult>();
+        objectResult.StatusCode.ShouldBe(StatusCodes.Status422UnprocessableEntity);
+        objectResult.Value.ShouldBeOfType<ProblemDetails>();
         invoked.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void ToActionResult_SuccessfulResultWithValueAndUntypedLambda_SelectsTheSuccessMapping()
+    {
+        // Arrange
+        var controller = TestControllerFactory.Create();
+        var value = new TestValue(13, "Test value");
+        var sut = Result<TestValue>.FromValue(value);
+
+        // Act
+        // The body of the lambda would also compile for an Error parameter.
+        var result = sut.ToActionResult(controller,
+            (mapped, c) => c.StatusCode(StatusCodes.Status203NonAuthoritative, mapped));
+
+        // Assert
+        var objectResult = result.ShouldBeOfType<ObjectResult>();
+        objectResult.StatusCode.ShouldBe(StatusCodes.Status203NonAuthoritative);
+        objectResult.Value.ShouldBeSameAs(value);
+    }
+
+    [Fact]
+    public void ToActionResult_SuccessfulResultWithValueAndErrorMappingOnly_ReturnsOkWithTheValue()
+    {
+        // Arrange
+        var controller = TestControllerFactory.Create();
+        var value = new TestValue(13, "Test value");
+        var sut = Result<TestValue>.FromValue(value);
+
+        // Act
+        var result = sut.ToActionResult(controller, customErrorMapping: MapFailureToPaymentRequired);
+
+        // Assert
+        result.ShouldBeOfType<OkObjectResult>().Value.ShouldBeSameAs(value);
+    }
+
+    [Fact]
+    public void ToActionResult_SuccessfulResultWithNullValueAndErrorMappingOnly_ReturnsNoContent()
+    {
+        // Arrange
+        var controller = TestControllerFactory.Create();
+        var sut = Result<TestValue?>.FromValue(null);
+
+        // Act
+        var result = sut.ToActionResult(controller, customErrorMapping: MapFailureToPaymentRequired);
+
+        // Assert
+        result.ShouldBeOfType<NoContentResult>();
     }
 
     [Fact]
@@ -637,7 +686,7 @@ public class ActionResultExtensionsTests
         var sut = Result.FromError(CreateFailureError());
 
         // Act
-        var result = sut.ToActionResult(controller, MapFailureToConflict);
+        var result = sut.ToActionResult(controller, customErrorMapping: MapFailureToConflict);
 
         // Assert
         result.ShouldBeOfType<ObjectResult>().StatusCode.ShouldBe(StatusCodes.Status409Conflict);
@@ -653,7 +702,7 @@ public class ActionResultExtensionsTests
         var sut = Result.FromError(CreateFailureError());
 
         // Act
-        var result = sut.ToActionResult(controller, MapConflictToPaymentRequired);
+        var result = sut.ToActionResult(controller, customErrorMapping: MapConflictToPaymentRequired);
 
         // Assert
         result.ShouldBeOfType<ObjectResult>().StatusCode.ShouldBe(StatusCodes.Status402PaymentRequired);
@@ -757,6 +806,34 @@ public class ActionResultExtensionsTests
         result.ShouldBeOfType<ObjectResult>().StatusCode.ShouldBe(StatusCodes.Status203NonAuthoritative);
     }
 
+    [Fact]
+    public void ToActionResult_ControllerFirstWithErrorMappingOnly_ReturnsCustomMappedResult()
+    {
+        // Arrange
+        var sut = TestControllerFactory.Create();
+
+        // Act
+        var result = sut.ToActionResult(Result.FromError(CreateFailureError()),
+            customErrorMapping: MapFailureToPaymentRequired);
+
+        // Assert
+        result.ShouldBeOfType<ObjectResult>().StatusCode.ShouldBe(StatusCodes.Status402PaymentRequired);
+    }
+
+    [Fact]
+    public void ToActionResult_ControllerFirstWithGenericResultAndErrorMappingOnly_ReturnsCustomMappedResult()
+    {
+        // Arrange
+        var sut = TestControllerFactory.Create();
+
+        // Act
+        var result = sut.ToActionResult(Result<TestValue>.FromError(CreateFailureError()),
+            customErrorMapping: MapFailureToPaymentRequired);
+
+        // Assert
+        result.ShouldBeOfType<ObjectResult>().StatusCode.ShouldBe(StatusCodes.Status402PaymentRequired);
+    }
+
     #endregion
 
     #region guard clauses
@@ -798,17 +875,17 @@ public class ActionResultExtensionsTests
     }
 
     [Fact]
-    public void ToActionResult_NullSuccessMapping_ThrowsArgumentNullException()
+    public void ToActionResult_NullSuccessMapping_ReturnsNoContent()
     {
         // Arrange
         var controller = TestControllerFactory.Create();
         var sut = Result.Success();
 
         // Act
-        var act = () => sut.ToActionResult(controller, (Func<ControllerBase, ActionResult>)null!);
+        var result = sut.ToActionResult(controller, (Func<ControllerBase, ActionResult>?)null);
 
         // Assert
-        act.ShouldThrow<ArgumentNullException>().ParamName.ShouldBe("customSuccessMapping");
+        result.ShouldBeOfType<NoContentResult>();
     }
 
     [Fact]
@@ -851,17 +928,18 @@ public class ActionResultExtensionsTests
     }
 
     [Fact]
-    public void ToActionResult_GenericResultWithNullSuccessMapping_ThrowsArgumentNullException()
+    public void ToActionResult_GenericResultWithNullSuccessMapping_ReturnsOkWithTheValue()
     {
         // Arrange
         var controller = TestControllerFactory.Create();
-        var sut = Result<TestValue>.FromValue(new TestValue(13, "Test value"));
+        var value = new TestValue(13, "Test value");
+        var sut = Result<TestValue>.FromValue(value);
 
         // Act
-        var act = () => sut.ToActionResult(controller, (Func<TestValue, ControllerBase, ActionResult>)null!);
+        var result = sut.ToActionResult(controller, (Func<TestValue, ControllerBase, ActionResult>?)null);
 
         // Assert
-        act.ShouldThrow<ArgumentNullException>().ParamName.ShouldBe("customSuccessMapping");
+        result.ShouldBeOfType<OkObjectResult>().Value.ShouldBeSameAs(value);
     }
 
     [Fact]

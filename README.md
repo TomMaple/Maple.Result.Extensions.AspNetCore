@@ -46,14 +46,23 @@ public ActionResult Get(int id)
 public ActionResult Create(Order order)
     => _orderService.Create(order).ToActionResult(this, HttpStatusCode.Created);
 
+// Success -> mapped explicitly, here to 201 Created with the Location header
+[HttpPost("{id}/copy")]
+public ActionResult Copy(int id)
+    => _orderService.Copy(id).ToActionResult(this,
+        (order, controller) => controller.Created($"/orders/{order.Id}", order));
+
 // Errors -> mapped explicitly; the default mapping is used when the mapping returns null
 [HttpDelete("{id}/lines")]
 public ActionResult DeleteLines(int id)
     => _orderService.DeleteLines(id).ToActionResult(this,
-        (error, controller) => error.Category == ErrorCategory.Conflict
+        customErrorMapping: (error, controller) => error.Category == ErrorCategory.Conflict
             ? controller.StatusCode(StatusCodes.Status410Gone)
             : null);
 ```
+
+A mapping passed without a parameter name always maps the successful result, so an error mapping has to be passed as
+`customErrorMapping:` unless a success mapping precedes it.
 
 The same error mapping can be registered once for the whole application, in which case it is used
 whenever no mapping is passed to the extension method:

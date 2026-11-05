@@ -29,7 +29,7 @@ internal static class FunctionEndpoints
         Map(endpoints, "success-mapping", () => Result.Success().ToActionResult(MapSuccess));
         Map(endpoints, "error", () => Result.FromError(CreateFailureError()).ToActionResult());
         Map(endpoints, "error/custom-mapping",
-            () => Result.FromError(CreateFailureError()).ToActionResult(MapFailureToPaymentRequired));
+            () => Result.FromError(CreateFailureError()).ToActionResult(customErrorMapping: MapFailureToPaymentRequired));
         Map(endpoints, "error/templated", () => Result.FromError(CreateTemplatedError()).ToActionResult());
 
         Map(endpoints, "value", () => Result<TestValue>.FromValue(CreateValue()).ToActionResult());
@@ -37,7 +37,7 @@ internal static class FunctionEndpoints
         Map(endpoints, "value/status-code",
             () => Result<TestValue>.FromValue(CreateValue()).ToActionResult(HttpStatusCode.Created));
         Map(endpoints, "value/success-mapping",
-            () => Result<TestValue>.FromValue(CreateValue()).ToActionResult((Func<TestValue, ActionResult>)MapValue));
+            () => Result<TestValue>.FromValue(CreateValue()).ToActionResult(MapValue));
         Map(endpoints, "value/error", () => Result<TestValue>.FromError(CreateFailureError()).ToActionResult());
     }
 

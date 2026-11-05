@@ -34,15 +34,16 @@ public IActionResult CreateOrder(
 [Function("CopyOrder")]
 public IActionResult CopyOrder(
     [HttpTrigger(AuthorizationLevel.Function, "post", Route = "orders/{id:int}/copy")] HttpRequest request, int id)
-    => _orderService.Copy(id).ToActionResult((Order order) => new CreatedResult($"/orders/{order.Id}", order));
+    => _orderService.Copy(id).ToActionResult(order => new CreatedResult($"/orders/{order.Id}", order));
 
 // Errors -> mapped explicitly; the default mapping is used when the mapping returns null
 [Function("DeleteOrderLines")]
 public IActionResult DeleteOrderLines(
     [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "orders/{id:int}/lines")] HttpRequest request, int id)
-    => _orderService.DeleteLines(id).ToActionResult(error => error.Category == ErrorCategory.Conflict
-        ? new StatusCodeResult(StatusCodes.Status410Gone)
-        : null);
+    => _orderService.DeleteLines(id).ToActionResult(
+        customErrorMapping: error => error.Category == ErrorCategory.Conflict
+            ? new StatusCodeResult(StatusCodes.Status410Gone)
+            : null);
 ```
 
 # Error responses
@@ -54,8 +55,8 @@ the `traceId` extension, and the `CustomizeProblemDetails` option of `AddProblem
 * There are no global mappings. To use the same mapping in many functions, pass a shared static method.
 * The mapping functions do not receive any context. If they need the request or the response, they can capture
   the `HttpRequest` parameter of the function.
-* On `Result<T>`, a lambda mapping a successful result needs an explicitly typed parameter, e.g.,
-  `(Order order) => ...`. Otherwise, the overload taking the error mapping is selected.
+* A mapping passed without a parameter name always maps the successful result, so an error mapping has to be passed
+  as `customErrorMapping:` unless a success mapping precedes it.
 
 # Contribution
 Please contact author: engineer(at sign)blumail(dot)me
