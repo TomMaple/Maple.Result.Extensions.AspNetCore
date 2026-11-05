@@ -102,6 +102,9 @@ jobs:
     - name: Generate NuGet package
       run: dotnet pack src/Maple.Result.Extensions.AspNetCore/Maple.Result.Extensions.AspNetCore.csproj --no-build -o ${{ env.ARTIFACTS_PATH }} -p:Version=${{ steps.calculate_version.outputs.package_version }} -p:InformationalVersion=${{ steps.calculate_version.outputs.informational_version }} --configuration Release
 
+    - name: Generate Azure Functions NuGet package
+      run: dotnet pack src/Maple.Result.Extensions.Functions.Worker.AspNetCore/Maple.Result.Extensions.Functions.Worker.AspNetCore.csproj --no-build -o ${{ env.ARTIFACTS_PATH }} -p:Version=${{ steps.calculate_version.outputs.package_version }} -p:InformationalVersion=${{ steps.calculate_version.outputs.informational_version }} --configuration Release
+
     - name: NuGet login
       if: github.ref == 'refs/heads/main' && steps.src_changes.outputs.changed == 'true'
       uses: NuGet/login@v1
@@ -111,4 +114,4 @@ jobs:
 
     - name: NuGet push
       if: github.ref == 'refs/heads/main' && steps.src_changes.outputs.changed == 'true'
-      run: dotnet nuget push ${{ env.ARTIFACTS_PATH }}/*.nupkg --api-key ${{steps.nuget_login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ${{ env.ARTIFACTS_PATH }}/*.nupkg --api-key ${{steps.nuget_login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json --skip-duplicate

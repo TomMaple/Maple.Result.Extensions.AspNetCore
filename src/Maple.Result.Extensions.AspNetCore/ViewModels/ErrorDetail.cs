@@ -6,7 +6,7 @@ namespace Maple.Result.Extensions.AspNetCore.ViewModels;
 ///     Represents an individual error occurence that contains the details of an error, including the property pointer,
 ///     detail message, and optional templated message.
 /// </summary>
-public sealed record ErrorDetail
+internal sealed record ErrorDetail
 {
     /// <summary>
     ///     Initializes a new instance of the <see cref="ErrorDetail" /> class with the specified property pointer,

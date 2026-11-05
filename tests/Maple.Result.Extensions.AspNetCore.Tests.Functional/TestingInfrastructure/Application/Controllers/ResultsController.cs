@@ -309,7 +309,7 @@ public sealed class ResultsController : ControllerBase
     {
         var result = Result.FromError(CreateFailureError());
 
-        return result.ToActionResult(this, MapFailureToPaymentRequired);
+        return result.ToActionResult(this, customErrorMapping: MapFailureToPaymentRequired);
     }
 
     [HttpGet("per-call/controller-result")]
@@ -317,7 +317,7 @@ public sealed class ResultsController : ControllerBase
     {
         var result = Result.FromError(CreateFailureError());
 
-        return this.ToActionResult(result, MapFailureToPaymentRequired);
+        return this.ToActionResult(result, customErrorMapping: MapFailureToPaymentRequired);
     }
 
     [HttpGet("per-call/generic-result-controller")]
@@ -325,7 +325,7 @@ public sealed class ResultsController : ControllerBase
     {
         var result = Result<TestValue>.FromError(CreateFailureError());
 
-        return result.ToActionResult(this, MapFailureToPaymentRequired);
+        return result.ToActionResult(this, customErrorMapping: MapFailureToPaymentRequired);
     }
 
     [HttpGet("per-call/generic-controller-result")]
@@ -333,7 +333,7 @@ public sealed class ResultsController : ControllerBase
     {
         var result = Result<TestValue>.FromError(CreateFailureError());
 
-        return this.ToActionResult(result, MapFailureToPaymentRequired);
+        return this.ToActionResult(result, customErrorMapping: MapFailureToPaymentRequired);
     }
 
     [HttpGet("per-call/not-matching")]
@@ -341,7 +341,7 @@ public sealed class ResultsController : ControllerBase
     {
         var result = Result.FromError(CreateFailureError());
 
-        return result.ToActionResult(this, MapConflictToPaymentRequired);
+        return result.ToActionResult(this, customErrorMapping: MapConflictToPaymentRequired);
     }
 
     [HttpGet("per-call/precedence")]
@@ -353,7 +353,7 @@ public sealed class ResultsController : ControllerBase
             "Conflict detail.",
             ErrorUri.Locator("https://test.com/instances/conflict")));
 
-        return result.ToActionResult(this, MapConflictToPaymentRequired);
+        return result.ToActionResult(this, customErrorMapping: MapConflictToPaymentRequired);
     }
 
     #endregion

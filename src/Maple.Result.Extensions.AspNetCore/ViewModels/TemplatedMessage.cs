@@ -9,7 +9,7 @@ namespace Maple.Result.Extensions.AspNetCore.ViewModels;
 /// <remarks>
 ///     The purpose of this structure is to provide a way to generate client-side localized messages.
 /// </remarks>
-public sealed record TemplatedMessage
+internal sealed record TemplatedMessage
 {
     /// <summary>
     ///     Initializes a new instance of the <see cref="TemplatedMessage" /> class with the specified template identifier and
